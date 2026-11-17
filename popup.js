@@ -1,3 +1,4 @@
+document.getElementById('version').textContent='· '+chrome.runtime.getManifest().version;
 const status=document.getElementById('status');
 const show=s=>status.textContent=s;
 document.getElementById('open').onclick=()=>chrome.tabs.create({url:chrome.runtime.getURL('overlay.html')});

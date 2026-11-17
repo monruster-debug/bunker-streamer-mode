@@ -1,1 +1,48 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><style>body{background:#121212;color:#fff;font:14px Arial;width:295px;padding:14px}h2{margin:0 0 8px}.note{color:#aaa;line-height:1.45}button{border:0;border-radius:9px;background:#ff3500;padding:12px 14px;font-weight:700;color:#fff;cursor:pointer;width:100%;margin:12px 0}.status{padding:10px;background:#232323;border-radius:8px}</style></head><body><h2>Убежище 42 Stream · 0.8</h2><div class="status" id="status">Проверка данных…</div><button id="scan" style="background:#333;border:1px solid #555">Проверить подключение к игре</button><button id="open">Открыть экран стрима и камеры</button><div class="note">На экране стрима нажмите «Настройка камер», выберите окно Discord либо OBS Virtual Camera. Сначала предоставьте доступ к захвату, затем свяжите видеоячейки с игроками.</div><script src="popup.js"></script></body></html>
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Убежище 42 Stream — инструкция</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:16px;width:360px;max-height:580px;overflow-y:auto;background:#121212;color:#fff;font:14px Arial,sans-serif}h2{margin:0 0 12px;font-size:20px}button{border:0;border-radius:9px;background:#ff3500;padding:12px 14px;font-weight:700;color:#fff;cursor:pointer;width:100%;margin:10px 0 0}button:focus-visible,summary:focus-visible{outline:2px solid #fff;outline-offset:3px}#scan{background:#333;border:1px solid #555}.status{padding:10px;background:#232323;border-radius:8px;line-height:1.4;overflow-wrap:anywhere}.guide{margin-top:18px;border-top:1px solid #3a3a3a;padding-top:14px}.guide h3{margin:0 0 8px;font-size:16px}details{border-bottom:1px solid #333;padding:10px 0}summary{cursor:pointer;font-weight:700;line-height:1.4}details p,details ol,details ul{margin:10px 0 0;color:#bdbdbd;line-height:1.5}ol,ul{padding-left:21px}li+li{margin-top:7px}strong{color:#fff}.tip{font-size:12px;color:#999;line-height:1.5;margin:12px 0 0}
+</style>
+</head>
+<body>
+<h2>Убежище 42 Stream <span id="version"></span></h2>
+<div class="status" id="status" role="status">Проверка данных…</div>
+<button id="scan" type="button">Проверить подключение к игре</button>
+<button id="open" type="button">Открыть экран стрима и камеры</button>
+<section class="guide" aria-labelledby="guide-title">
+<h3 id="guide-title">Как пользоваться</h3>
+<details>
+<summary>1. Подключите игру</summary>
+<ol><li>Откройте игру на <strong>shelter42.ru/online/game</strong> в том же браузере и профиле, где установлено расширение. Используйте одну игровую вкладку.</li><li>Нажмите <strong>«Проверить подключение к игре»</strong>. После успешной проверки откройте экран стрима кнопкой выше.</li><li>Оставьте вкладку игры открытой. Игроки, открытые характеристики, голоса и таймер обновляются автоматически.</li></ol>
+</details>
+<details>
+<summary>2. Подключите камеры Discord</summary>
+<ol><li>Откройте звонок Discord с камерами участников в виде сетки. По возможности уберите демонстрации экрана и лишние панели.</li><li>На экране стрима нажмите <strong>шестерёнку на карточке игрока</strong> или клавишу <strong>Esc</strong>.</li><li>Нажмите <strong>«Захватить окно Discord / OBS»</strong>. В окне выбора перейдите в раздел <strong>«Окно»</strong> и выберите окно звонка Discord. Подтвердите захват.</li><li>В предпросмотре проверьте изображение. Полями <strong>«Слева», «Сверху», «Справа», «Снизу»</strong> обрежьте панели и поля вокруг сетки. Значения указаны в процентах.</li><li>В поле <strong>«Сетка источника»</strong> выберите число столбцов и строк: например, <strong>2 × 3</strong> — два столбца и три ряда. Учитывайте все плитки внутри выбранной области.</li></ol>
+<p>Один видеопоток разрезается на ячейки. Расширение само не получает отдельные камеры из Discord.</p>
+</details>
+<details>
+<summary>3. Назначьте камеры игрокам</summary>
+<ol><li>Номера ячеек идут <strong>слева направо, затем сверху вниз</strong>. В сетке 2 × 2: сверху 1 и 2, снизу 3 и 4.</li><li>При открытых настройках на карточках игроков найдите список <strong>«Камера 1», «Камера 2»…</strong> и назначьте каждому его ячейку. Порядок участников в Discord может отличаться от игры.</li><li>Выберите <strong>«Без камеры»</strong>, если изображение игроку не нужно. Не назначайте одну ячейку нескольким игрокам, если не хотите дублирования.</li><li><strong>«Привязать по порядку игроков»</strong> подходит, только если порядок игры совпадает с сеткой источника. Эта кнопка заменит ручные привязки.</li><li>Нажмите <strong>«Сохранить настройки»</strong>, затем <strong>«Закрыть»</strong> или <strong>Esc</strong>.</li></ol>
+<p>Если кто-то вошёл в звонок, вышел из него или Discord перестроил сетку, проверьте обрезку и назначения снова.</p>
+</details>
+<details>
+<summary>Вместо Discord: OBS Virtual Camera</summary>
+<ol><li>В OBS подготовьте сцену с общей сеткой камер и включите <strong>«Запустить виртуальную камеру»</strong>.</li><li>В настройках расширения нажмите <strong>«Выбрать камеру / OBS Virtual Camera»</strong> и разрешите доступ к камере.</li><li>Обновите список устройств, выберите <strong>OBS Virtual Camera</strong> в поле <strong>«Устройство камеры»</strong> и снова нажмите кнопку подключения камеры.</li><li>Выберите сетку источника и назначьте ячейки игрокам, как описано выше.</li></ol>
+<p>Если выбрать обычную веб-камеру, расширение получит только её изображение. Камеры остальных участников в нём не появятся.</p>
+</details>
+<details>
+<summary>Управление и вывод на трансляцию</summary>
+<ul><li><strong>Шестерёнка или Esc</strong> — открыть настройки камер. «Закрыть» или Esc — скрыть их. Пока открыт игровой попап, Esc не управляет настройками.</li><li><strong>«Отключить видео»</strong> — завершить захват. Данные игры продолжат отображаться.</li><li>Попапы катастрофы и карты бункера повторяют открытие и закрытие во вкладке игры. Отдельного закрытия у зрителей нет.</li><li>Для точного макета используйте область вкладки <strong>1920 × 1080</strong> или <strong>2560 × 1440</strong> при масштабе браузера 100%. В меньшем окне макет уменьшается целиком.</li><li>В OBS добавьте <strong>«Захват окна»</strong> с экраном стрима. Источник OBS «Браузер» не получает видеопоток и разрешения открытой вкладки.</li></ul>
+</details>
+<details>
+<summary>Если что-то не работает</summary>
+<ul><li><strong>Игра не подключена:</strong> проверьте браузер и профиль, перезагрузите вкладку игры (Ctrl+R), затем повторите проверку подключения.</li><li><strong>Картинка дублируется:</strong> проверьте номера камер, сетку и обрезку. Каждому участнику нужна его ячейка.</li><li><strong>Вместо лиц видны части рабочего стола:</strong> повторите захват и выберите окно звонка Discord, затем обрежьте поля в предпросмотре.</li><li><strong>Источник пропал:</strong> подключите его заново. После перезагрузки или закрытия экрана стрима разрешение на захват нужно предоставить снова. Сохранённые настройки остаются.</li><li><strong>После обновления файлов:</strong> откройте chrome://extensions, нажмите «Обновить» у расширения, затем перезагрузите игру и экран стрима. После этого заново подключите видео.</li></ul>
+</details>
+<p class="tip">Видео обрабатывается локально. Расширение не организует видеозвонок: для камер других игроков используйте Discord или готовую сетку OBS.</p>
+</section>
+<script src="popup.js"></script>
+</body></html>
