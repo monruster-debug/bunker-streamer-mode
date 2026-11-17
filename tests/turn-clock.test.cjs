@@ -1,0 +1,28 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const {runInNewContext}=require('node:vm');
+const fs=require('node:fs');
+
+test('turn clock follows public player identity, discussion, extension and final without stale labels',()=>{
+ const elements={};
+ const scope={$:id=>elements[id]||(elements[id]={})};
+ const source=fs.readFileSync('overlay.js','utf8');
+ runInNewContext(source.slice(source.indexOf('function updateTurnClock('),source.indexOf('function render(){')),scope);
+ const state={players:[{number:'Игрок 4',name:'Репка'}],current:'Репка',timer:'02:30',phase:'game'};
+ scope.updateTurnClock(state);
+ assert.equal(elements['clock-number'].textContent,'4');
+ assert.equal(elements['clock-name'].textContent,'Репка');
+ assert.equal(elements['clock-player'].hidden,false);
+ scope.updateTurnClock({...state,phase:'discussion',additionalTime:'+2 мин.'});
+ assert.equal(elements['clock-player'].hidden,true);
+ assert.equal(elements['discussion-icon'].hidden,false);
+ assert.equal(elements['clock-additional'].hidden,false);
+ scope.updateTurnClock({...state,phase:'discussion'});
+ assert.equal(elements['clock-additional'].hidden,true);
+ scope.updateTurnClock({...state,phase:'game',stage:'Обсуждение'});
+ assert.equal(elements['clock-player'].hidden,false);
+ scope.updateTurnClock({...state,final:true});
+ assert.equal(elements['clock-player'].hidden,true);
+ assert.equal(elements['clock-name'].textContent,'');
+ assert.equal(elements['clock-description'].hidden,true);
+});

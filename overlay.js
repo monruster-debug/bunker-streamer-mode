@@ -29,13 +29,13 @@ function fitCanvas(){
  style.setProperty('--overlay-left',fit.left+'px');style.setProperty('--overlay-top',fit.top+'px');
 }
 fitCanvas();window.addEventListener('resize',fitCanvas);
-function createSlotState(dead=false){
- const state=document.createElement('div');state.className='slot-state';
+function createSlotState(dead=false, cameraOff=false){
+ const state=document.createElement('div');state.className='slot-state'+(cameraOff?' camera-off':'');
  const brand=document.createElement('img');brand.className='slot-brand';brand.src='assets/empty-brand.svg';brand.width=337.097;brand.height=61.2305;brand.alt='';
  const label=document.createElement('div');label.className='slot-state-label';
- const icon=document.createElement('img');icon.src=dead?'assets/eliminated-skull.svg':'assets/empty-crown.svg';icon.width=34;icon.height=34;icon.alt='';
+ const icon=document.createElement('img');icon.src=dead?'assets/eliminated-skull.svg':cameraOff?'assets/camera-off.svg':'assets/empty-crown.svg';icon.width=34;icon.height=34;icon.alt='';
  const text=document.createElement('span');
- if(dead){const firstLine=document.createElement('span');firstLine.className='slot-state-first-line';firstLine.textContent='Игрок покинул';text.append(firstLine,document.createElement('br'),document.createTextNode('убежище'));}else text.textContent='Место пустует';
+ if(dead){const firstLine=document.createElement('span');firstLine.className='slot-state-first-line';firstLine.textContent='Игрок покинул';text.append(firstLine,document.createElement('br'),document.createTextNode('убежище'));}else text.textContent=cameraOff?'Камера отключена':'Место пустует';
  label.append(icon,text);state.append(brand,label);return state;
 }
 function createCameraSettings(label){
@@ -106,15 +106,15 @@ function createPlayer(p,i){
  const key=playerKey(p,i), article=document.createElement('article');article.className='player'+(p.eliminated?' dead':'')+(game?.current===p.name?' active':'');article.dataset.key=key;
  const cam=document.createElement('div');cam.className='cam';
  const canvas=document.createElement('canvas');canvas.width=480;canvas.height=300;canvas.hidden=!stream;cam.append(canvas);
- const placeholder=document.createElement('div');placeholder.className='cam-placeholder';const slotNumber=document.createElement('strong');slotNumber.textContent=String(i+1).padStart(2,'0');const signal=document.createElement('span');signal.textContent='ОЖИДАНИЕ СИГНАЛА';placeholder.append(slotNumber,signal);placeholder.hidden=!!stream;cam.append(placeholder);
  const idx=document.createElement('div');idx.className='cam-index';idx.textContent=p.number||`Игрок ${i+1}`;cam.append(idx);
  const select=document.createElement('select');select.className='cam-map';select.title='Номер видеоячейки для игрока';select.setAttribute('aria-label','Видеоячейка для '+p.name);
  const unassigned=document.createElement('option');unassigned.value='0';unassigned.textContent='Без камеры';select.append(unassigned);
  const {total}=gridDims();for(let n=1;n<=total;n++){const opt=document.createElement('option');opt.value=String(n);opt.textContent=`Камера ${n}`;select.append(opt);}
  const mapped=options.map[key];select.value=String(mapped===undefined?(i<total?i+1:0):mapped);if(!select.value)select.value='0';
- select.hidden=!settingsOpen;select.onchange=()=>{options.map[key]=Number(select.value);save().catch(()=>{});};cam.append(select);
+ select.hidden=!settingsOpen;select.onchange=()=>{options.map[key]=Number(select.value);save().catch(()=>{});render();};cam.append(select);
  const name=document.createElement('div');name.className='name';const small=document.createElement('small');small.textContent=String(p.number||i+1).replace('Игрок ','');const title=document.createElement('span');title.textContent=safeText(p.name);name.append(small,title);
  if(p.eliminated)article.append(createSlotState(true));
+ else if(!stream||Number(select.value)===0){canvas.hidden=true;article.append(createSlotState(false,true));}
  const cards=document.createElement('div');cards.className='cards';
  const known=p.cards||{};
  const left=document.createElement('div');left.className='card-stack card-stack-left';
@@ -135,12 +135,25 @@ function createPlayer(p,i){
  }
  return article;
 }
+function updateTurnClock(state){
+ $('clock').textContent=state.timer||'';
+ const discussion=!state.final&&(state.phase?state.phase==='discussion':/обсуждени/i.test((state.stage||'')+' '+(state.current||'')));
+ const currentPlayer=!state.final&&!discussion&&(state.players||[]).find(p=>p.name===state.current&&!p.eliminated);
+ $('clock-player').hidden=!currentPlayer;
+ $('clock-number').textContent=currentPlayer?String(currentPlayer.number).replace('Игрок ',''):'';
+ $('clock-name').textContent=currentPlayer?.name||'';
+ $('discussion-icon').hidden=!discussion;
+ $('clock-description').hidden=!discussion&&!currentPlayer;
+ $('clock-description').textContent=discussion?'Уважаемые игроки, пришло время обсудить открытые карты...':currentPlayer?'Думает какую карту вам показать...':'';
+ $('clock-additional').textContent=state.additionalTime||'';
+ $('clock-additional').hidden=!discussion||!state.additionalTime;
+}
 function render(){
  catastropheView.update(game);
  bunkerView.update(game);
  if(!game){$('status').textContent='Откройте игру и проверьте подключение в меню расширения';renderPlayers([]);return;}
  $('stage').textContent=game.final?'Финал':`${game.round?'Круг '+game.round:'Игра'}${game.stage?' · '+game.stage:''}`;
- $('clock').textContent=game.timer||'';
+ updateTurnClock(game);
  $('catastrophe').textContent=game.catastrophe||'';credits.update(game.catastropheDescription||'');
  const nuclear=game.catastrophe==='Ядерная война';
  const image=$('cat-center-image');let source=game.catastropheImage||game.catastrophePopup?.image||'';
