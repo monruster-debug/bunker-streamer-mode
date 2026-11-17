@@ -7,7 +7,7 @@ test('camera assignments preserve explicit mappings, default by position and sta
  scope.gridDims=()=>{const [cols,rows]=scope.options.grid.split('x').map(Number);return {cols,total:cols*rows};};
  const source=fs.readFileSync('overlay.js','utf8');runInNewContext(source.slice(source.indexOf("let previousAssignmentsRender="),source.indexOf('function render(){')),scope);
  scope.renderCameraAssignments();const selects=list.children.map(label=>label.children[1]);
- assert.deepEqual(selects.map(s=>s.value),['4','2','0']);
+ assert.equal(selects.length,12);assert.deepEqual(selects.slice(0,3).map(s=>s.value),['4','2','0']);assert.ok(selects.slice(3).every(s=>s.value==='0'));
  assert.equal(selects[0].children[4].textContent,'Камера 4 · ряд 2, место 2');
  scope.game.timer='00:30';scope.renderCameraAssignments();assert.equal(list.children[0].children[1],selects[0]);
  selects[1].value='3';selects[1].change();assert.equal(scope.options.map['2:Б'],3);assert.equal(saved,1);
