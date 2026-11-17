@@ -17,7 +17,7 @@ window.S42Motion = {
    for(let copy=0;copy<copies;copy++)cards.forEach((card,i)=>{
     const clone=createSlide(card,i);clone.setAttribute('aria-hidden','true');track.append(clone);
    });
-   animation=track.animate([{transform:'translateX(0px)'},{transform:`translateX(-${distance}px)`}],{duration:cycleMs,iterations:Infinity,easing:'linear'});
+   animation=track.animate([{transform:`translateX(-${distance}px)`},{transform:'translateX(0px)'}],{duration:cycleMs,iterations:Infinity,easing:'linear'});
    animation.currentTime=progress;
   }
   const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(measure);};

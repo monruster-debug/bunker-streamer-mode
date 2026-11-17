@@ -9,4 +9,6 @@ test('timer updates keep camera selectors mounted while turn, settings and assig
  scope.game.current='Б';scope.renderPlayers(players);assert.equal(created,2);
  scope.options.map['1:А']=3;scope.renderPlayers(players);assert.equal(created,3);
  scope.settingsOpen=false;scope.renderPlayers(players);assert.equal(created,4);
+ scope.game.final=true;scope.renderPlayers(players);assert.equal(created,5);
+ scope.game.timer='01:58';scope.renderPlayers(players);assert.equal(created,5);
 });

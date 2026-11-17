@@ -103,7 +103,7 @@ async function captureCamera(){
  }catch(e){updateSourceStatus('Камера не подключена: '+e.message+' · проверьте разрешения браузера и запуск OBS Virtual Camera');}
 }
 function createPlayer(p,i){
- const key=playerKey(p,i), article=document.createElement('article');article.className='player'+(p.eliminated?' dead':'')+(game?.current===p.name&&!p.eliminated?' active':'');article.dataset.key=key;
+ const key=playerKey(p,i), article=document.createElement('article');article.className='player'+(p.eliminated?' dead':'')+(game?.final&&!p.eliminated?' winner':'')+(!game?.final&&game?.current===p.name&&!p.eliminated?' active':'');article.dataset.key=key;
  const cam=document.createElement('div');cam.className='cam';
  const canvas=document.createElement('canvas');canvas.width=480;canvas.height=300;canvas.hidden=!stream;cam.append(canvas);
  const idx=document.createElement('div');idx.className='cam-index';idx.textContent=p.number||`Игрок ${i+1}`;cam.append(idx);
@@ -219,7 +219,7 @@ function animateElimination(previous,next){
 }
 let previousPlayersRender='';
 function renderPlayers(players){
- const signature=JSON.stringify({players,current:game?.current,wide:wideLayout.matches,settingsOpen,video:!!stream,options});
+ const signature=JSON.stringify({players,current:game?.current,final:!!game?.final,wide:wideLayout.matches,settingsOpen,video:!!stream,options});
  if(signature===previousPlayersRender)return;
  previousPlayersRender=signature;
  const center=$('game-center'),wide=wideLayout.matches;

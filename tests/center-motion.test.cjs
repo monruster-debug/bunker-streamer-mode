@@ -22,9 +22,9 @@ test('carousel loops continuously in 60 seconds with enough copies to fill a wid
  const s=setup();let starts=0,cancels=0,keyframes,timing;
  const track={style:{},clientWidth:568,firstElementChild:{offsetWidth:228},nodes:[],replaceChildren(...n){this.nodes=n;},append(n){this.nodes.push(n);},animate(f,t){starts++;keyframes=f;timing=t;return {currentTime:0,cancel(){cancels++;}};}};
  const slide=card=>({card,setAttribute(k,v){this[k]=v;}}),c=s.api.createCarousel(track,slide),cards=[{title:'А'},{title:'Б'}];
- c.update(cards);s.flush();assert.equal(timing.duration,60000);assert.equal(timing.iterations,Infinity);assert.equal(timing.easing,'linear');assert.equal(keyframes[1].transform,'translateX(-464px)');
- assert.equal(track.nodes.length,8);assert.equal(track.nodes[2]['aria-hidden'],'true');
+ c.update(cards);s.flush();assert.equal(timing.duration,60000);assert.equal(timing.iterations,Infinity);assert.equal(timing.easing,'linear');assert.equal(keyframes[0].transform,'translateX(-464px)');
+ assert.equal(keyframes[1].transform,'translateX(0px)');assert.equal(track.nodes.length,8);assert.equal(track.nodes[2]['aria-hidden'],'true');
  c.update(cards);s.flush();assert.equal(starts,1);
- track.gap='10px';c.update([{title:'Один'}]);s.flush();assert.equal(keyframes[1].transform,'translateX(-238px)');assert.ok(track.nodes.length*238>=568+238);
+ track.gap='10px';c.update([{title:'Один'}]);s.flush();assert.equal(keyframes[0].transform,'translateX(-238px)');assert.ok(track.nodes.length*238>=568+238);
  c.update([]);s.flush();assert.equal(track.nodes.length,0);assert.ok(cancels>=2);c.destroy();
 });
