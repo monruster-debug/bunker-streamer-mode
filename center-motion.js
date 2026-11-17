@@ -30,7 +30,7 @@ window.S42Motion = {
    animation?.cancel();animation=null;
    const distance=Math.max(0,text.scrollHeight-viewport.clientHeight);
    if(!distance)return;
-   const travel=Math.max(4000,distance/12*1000),pause=30000,endPause=2000;
+   const travel=Math.max(4000,distance/12*1000),pause=120000,endPause=2000;
    const duration=pause+travel*2+endPause;
 
    animation=text.animate([
@@ -49,5 +49,3 @@ window.S42Motion = {
   };
  }
 };
-
-
