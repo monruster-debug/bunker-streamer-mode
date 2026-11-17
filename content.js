@@ -29,10 +29,7 @@
     const active = document.querySelector('.game-status-header.hide-in-mobile .status-item_act');
     const stage = active?.querySelector('.status-item__current span')?.textContent?.trim() || '';
     const round = get('.status-item__number',active);
-    const bunker = [...document.querySelectorAll('.bunker-card')].map(card => {
-       const closed=card.classList.contains('bunker-card__close');
-       return {closed, revealLabel:closed?get('h3',card):'', title: closed ? '' : get('.bunker-card__front .bunker-card__title',card), description:closed?'':get('.bunker-card__back .bunker-card__title',card)};
-    });
+    const bunker = window.S42GameDOM.readBunkerCards();
     const background=document.querySelector('.bunker-main');
     const catastropheImage=background?getComputedStyle(background).backgroundImage.match(/url\(["']?(.*?)["']?\)/)?.[1]||'':'';
     const current = get('.game-header .current-status .base-button__text');

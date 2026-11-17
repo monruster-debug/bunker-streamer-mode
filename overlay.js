@@ -14,7 +14,7 @@ function createBunkerCard(card,i){
   const description=document.createElement('p');description.textContent=card.revealLabel||'Откроется после '+(i+1)+' круга';
   content.append(icon,description);
  }else{
-  const background=document.createElement('img');background.className='bunker-background';background.src='assets/bunker-background.png';background.alt='';slide.append(background);
+  const background=document.createElement('img');background.className='bunker-background';background.src=window.S42BunkerView.imageSource(card.image,'assets/bunker-background.png');background.alt='';slide.append(background);
   const title=document.createElement('h2');title.textContent=card.title||'Карта бункера';
   const description=document.createElement('p');description.textContent=card.description||'';
   content.append(title,description);

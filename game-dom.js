@@ -1,6 +1,15 @@
 'use strict';
 // Read public rendered DOM only. Never inspect framework state or private cards.
 window.S42GameDOM={
+ readBunkerCards(doc=document){
+  const clean=el=>el?.textContent?.replace(/\s+/g,' ').trim()||'';
+  return [...doc.querySelectorAll('.bunker-card')].map(card=>{
+   const closed=card.classList.contains('bunker-card__close');
+   if(closed)return {closed:true,revealLabel:clean(card.querySelector('h3')),title:'',description:'',image:''};
+   const image=card.querySelector('.bunker-card__front__img');
+   return {closed:false,revealLabel:'',title:clean(card.querySelector('.bunker-card__front .bunker-card__title')),description:clean(card.querySelector('.bunker-card__back .bunker-card__title')),image:image?.currentSrc||image?.src||''};
+  });
+ },
  readVotes(players,doc=document){
   const clean=el=>el?.textContent?.replace(/\s+/g,' ').trim()||'';
   // Names are the only public identity in voting cards. Ambiguous names are skipped.

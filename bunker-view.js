@@ -1,5 +1,9 @@
 'use strict';
 window.S42BunkerView={
+ imageSource(source,fallback){
+  try{if(new URL(source).protocol==='https:')return source;}catch{}
+  return fallback;
+ },
  create(root){
   let previous='';
   return {update(game){
@@ -13,9 +17,7 @@ window.S42BunkerView={
    root.querySelector('[data-bunker-title]').textContent=popup.title||'';
    root.querySelector('[data-bunker-description]').textContent=popup.description||'';
    const image=root.querySelector('[data-bunker-image]');
-   let source=popup.image||'';
-   try{if(new URL(source).protocol!=='https:')source='';}catch{source='';}
-   image.src=source||'assets/bunker-popup.png';
+   image.src=window.S42BunkerView.imageSource(popup.image,'assets/bunker-popup.png');
    root.querySelector('.bunker-popup-copy').scrollTop=0;
   }};
  }
