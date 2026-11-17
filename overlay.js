@@ -108,7 +108,7 @@ function createPlayer(p,i){
  const canvas=document.createElement('canvas');canvas.width=480;canvas.height=300;canvas.hidden=!stream;cam.append(canvas);
  const idx=document.createElement('div');idx.className='cam-index';idx.textContent=p.number||`Игрок ${i+1}`;cam.append(idx);
  const {total}=gridDims();
- const mapped=options.map[key]??(i<total?i+1:0);
+ const mapped=options.map[key]??options.map['slot:'+(i+1)]??(i<total?i+1:0);
  const name=document.createElement('div');name.className='name';const small=document.createElement('small');small.textContent=String(p.number||i+1).replace('Игрок ','');const title=document.createElement('span');title.textContent=safeText(p.name);name.append(small,title);
  if(p.eliminated)article.append(createSlotState(true));
  else if(!stream||Number(mapped)<1||Number(mapped)>total){canvas.hidden=true;article.append(createSlotState(false,true));}
@@ -148,20 +148,20 @@ function updateTurnClock(state){
 let previousAssignmentsRender='';
 function renderCameraAssignments(){
  if(!settingsOpen)return;
- const players=(game?.players||[]).slice(0,12);
- const signature=JSON.stringify({players:players.map((p,i)=>playerKey(p,i)),grid:options.grid,map:options.map});
+ const activePlayers=(game?.players||[]).slice(0,12);
+ const entries=Array.from({length:12},(_,i)=>activePlayers[i]?{player:activePlayers[i],index:i,key:playerKey(activePlayers[i],i),label:String(activePlayers[i].number||i+1).replace('Игрок ','')+'. '+activePlayers[i].name}:{player:null,index:i,key:'slot:'+(i+1),label:(i+1)+'. Игрок пока не присоединился'});
+ const signature=JSON.stringify({players:entries.map(e=>e.key+e.label),grid:options.grid,map:options.map});
  if(signature===previousAssignmentsRender)return;
  previousAssignmentsRender=signature;
  const list=$('camera-assignments-list');list.replaceChildren();
- if(!players.length){const empty=document.createElement('p');empty.textContent='Игроки появятся после подключения к игре.';list.append(empty);return;}
  const {cols,total}=gridDims();
- players.forEach((p,i)=>{
-  const key=playerKey(p,i),label=document.createElement('label');label.className='camera-assignment';
-  const name=document.createElement('span');name.textContent=String(p.number||i+1).replace('Игрок ','')+'. '+p.name;
-  const select=document.createElement('select');select.dataset.playerKey=key;select.setAttribute('aria-label','Камера для '+name.textContent);
+ entries.forEach(({player:p,index:i,key,label:text})=>{
+  const label=document.createElement('label');label.className='camera-assignment'+(p?'':' camera-assignment-empty');
+  const name=document.createElement('span');name.textContent=text;
+  const select=document.createElement('select');select.dataset.playerKey=key;select.setAttribute('aria-label','Камера для '+text);
   const none=document.createElement('option');none.value='0';none.textContent='Без камеры';select.append(none);
   for(let n=1;n<=total;n++){const opt=document.createElement('option');opt.value=String(n);opt.textContent='Камера '+n+' · ряд '+(Math.floor((n-1)/cols)+1)+', место '+((n-1)%cols+1);select.append(opt);}
-  const mapped=Number(options.map[key]??(i<total?i+1:0));select.value=String(mapped>=1&&mapped<=total?mapped:0);
+  const mapped=Number(options.map[key]??(p?options.map['slot:'+(i+1)]:0)??(i<total?i+1:0));select.value=String(mapped>=1&&mapped<=total?mapped:0);
   select.addEventListener('change',()=>{options.map[key]=Number(select.value);save().catch(e=>updateSourceStatus('Не сохранено: '+e.message));render();});
   label.append(name,select);list.append(label);
  });
