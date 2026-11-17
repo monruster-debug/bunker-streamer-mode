@@ -133,15 +133,21 @@ function createPlayer(p,i){
  return article;
 }
 function updateTurnClock(state){
- $('clock').textContent=state.timer||'';
+ const parts=String(state.timer||'').split(':');
+ const clock=$('clock');
+ if(parts.length===2){
+  const segments=[parts[0],':',parts[1]].map(text=>{const span=document.createElement('span');span.textContent=text;return span;});clock.replaceChildren(...segments);
+ }else clock.textContent=state.timer||'';
  const discussion=!state.final&&(state.phase?state.phase==='discussion':/обсуждени/i.test((state.stage||'')+' '+(state.current||'')));
- const currentPlayer=!state.final&&!discussion&&(state.players||[]).find(p=>p.name===state.current&&!p.eliminated);
+ const voting=!state.final&&(state.phase?state.phase==='voting':/голосовани/i.test((state.stage||'')+' '+(state.current||'')));
+ const currentPlayer=!state.final&&!discussion&&!voting&&(state.players||[]).find(p=>p.name===state.current&&!p.eliminated);
  $('clock-player').hidden=!currentPlayer;
  $('clock-number').textContent=currentPlayer?String(currentPlayer.number).replace('Игрок ',''):'';
  $('clock-name').textContent=currentPlayer?.name||'';
  $('discussion-icon').hidden=!discussion;
- $('clock-description').hidden=!discussion&&!currentPlayer;
- $('clock-description').textContent=discussion?'Уважаемые игроки, пришло время обсудить открытые карты...':currentPlayer?'Думает какую карту вам показать...':'';
+ $('voting-icon').hidden=!voting;
+ $('clock-description').hidden=!discussion&&!voting&&!currentPlayer;
+ $('clock-description').textContent=voting?'Идёт голосование...':discussion?'Уважаемые игроки, пришло время обсудить открытые карты...':currentPlayer?'Думает какую карту вам показать...':'';
  $('clock-additional').textContent=state.additionalTime||'';
  $('clock-additional').hidden=!discussion||!state.additionalTime;
 }
