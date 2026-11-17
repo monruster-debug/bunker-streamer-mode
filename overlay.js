@@ -160,7 +160,11 @@ function render(){
  $('status').textContent=`Данные: ${new Date(game.updatedAt).toLocaleTimeString('ru-RU')} · Видео: ${stream?'подключено':'не подключено'}`;
  if(stream&&!raf)drawLoop();
 }
+let previousPlayersRender='';
 function renderPlayers(players){
+ const signature=JSON.stringify({players,current:game?.current,wide:wideLayout.matches,settingsOpen,video:!!stream,options});
+ if(signature===previousPlayersRender)return;
+ previousPlayersRender=signature;
  const center=$('game-center'),wide=wideLayout.matches;
  const positions=wide?Array.from({length:12},(_,i)=>[Math.floor(i/4)+1,i%4+1]):[[1,1],[1,2],[1,3],[1,4],[2,1],[2,4],[3,1],[3,2],[3,3],[3,4]];
  const slots=positions.map((position,i)=>{const slot=players[i]?createPlayer(players[i],i):createEmptySlot();slot.style.gridArea=position.join(' / ');return slot;});
@@ -200,7 +204,7 @@ $('source-grid').addEventListener('change',()=>{configRead();render();save().cat
 for(const k of ['left','top','right','bottom'])$('crop-'+k).addEventListener('input',()=>{configRead();});
 $('save-settings').addEventListener('click',()=>{configRead();save().catch(e=>updateSourceStatus('Не сохранено: '+e.message));render();});
 $('auto-map').addEventListener('click',()=>{const {total}=gridDims();options.map={};for(const [i,p] of (game?.players||[]).entries())options.map[playerKey(p,i)]=i<total?i+1:0;render();save().catch(()=>{});});
-chrome.storage.local.get(['gameState','streamVideoOptions'],r=>{if(r.streamVideoOptions){options={...options,...r.streamVideoOptions,map:r.streamVideoOptions.map||{}};if(!['4x3','3x4','4x4','3x3','2x2'].includes(options.grid))options.grid='4x3';}syncInputs();setGame(r.gameState);});
+chrome.storage.local.get(['gameState','streamVideoOptions'],r=>{if(r.streamVideoOptions){options={...options,...r.streamVideoOptions,map:r.streamVideoOptions.map||{}};if(!['4x3','3x4','4x4','3x3','3x2','2x3','2x2'].includes(options.grid))options.grid='4x3';}syncInputs();setGame(r.gameState);});
 chrome.storage.onChanged.addListener((changes,area)=>{if(area==='local'&&changes.gameState)setGame(changes.gameState.newValue);});
 setInterval(()=>{if(!game||Date.now()-game.updatedAt>12000)$('status').textContent='Нет свежих данных игры · проверьте вкладку';},5000);
 window.addEventListener('pagehide',()=>{if(stream)for(const t of stream.getTracks())t.stop();});
