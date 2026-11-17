@@ -5,6 +5,7 @@
   const get = (sel, root=document) => clean(root?.querySelector(sel));
   let previous = '', timer = null;
   function snapshot() {
+    const catastrophePopup=window.S42GameDOM.readCatastrophe();
     const table = document.querySelector('.open-cards-table.hide-in-mobile') || document.querySelector('.open-cards-table');
     const players = table ? [...table.querySelectorAll('.open-cards-table-tr')].map((row,i)=> {
       const id = row.querySelector('.open-cards-table__first-cell');
@@ -32,10 +33,10 @@
     const current = get('.game-header .current-status .base-button__text');
     const next = get('.game-header .next-status .base-button__text');
     const seconds = get('.game-header .game-timer') || get('.game-mobile-header .game-timer');
-    return {source:'shelter42.ru/online/game', updatedAt:Date.now(), players, catastrophe:get('.bunker-main__title h3'), catastropheDescription:get('.bunker-main__text'), bunker, round, stage, current, next, timer:seconds, final:!!document.querySelector('.final')};
+    return {source:'shelter42.ru/online/game', updatedAt:Date.now(), players, catastrophe:get('.bunker-main__title h3')||catastrophePopup.title||'', catastropheDescription:get('.bunker-main__text')||catastrophePopup.description||'', catastrophePopup, bunker, round, stage, current, next, timer:seconds, final:!!document.querySelector('.final')};
   }
   function publish() {
-    if(!document.querySelector('.bunker-info') && !document.querySelector('.open-cards-table')) return;
+    if(!document.querySelector('.bunker-info, .open-cards-table, .disaster-card-modal')&&!previous) return;
     const result = snapshot();
     const sign = JSON.stringify({...result,updatedAt:0});
     if(sign === previous) return;
@@ -53,7 +54,7 @@
   });
   function schedule() { clearTimeout(timer); timer = setTimeout(publish,180); }
   const observer = new MutationObserver(schedule);
-  observer.observe(document.documentElement,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class']});
+  observer.observe(document.documentElement,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','style','hidden','aria-hidden','src']});
   publish();
   setInterval(publish,3000);
   window.addEventListener('pagehide',()=>{chrome.storage.local.set({gameDisconnectedAt:Date.now()}).catch(()=>{});});
