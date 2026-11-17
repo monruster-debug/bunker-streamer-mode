@@ -4,10 +4,16 @@
   const clean = (e) => e?.textContent?.replace(/\s+/g,' ').trim() || '';
   const get = (sel, root=document) => clean(root?.querySelector(sel));
   let previous = '', timer = null;
+  let publicStats={title:''};
   let roster=window.S42GameDOM.createRoster();
   function snapshot() {
     const catastrophePopup=window.S42GameDOM.readCatastrophe();
     const bunkerPopup=window.S42GameDOM.readBunker();
+    const title=get('.bunker-main__title h3')||catastrophePopup.title||get('.bunker-info_sm-info h3');
+    if(title!==publicStats.title)publicStats={title};
+    const capacityText=get('.bunker-main__actions') .match(/Кол-во мест:\s*(\d+)/)?.[1]||get('.bunker-info_sm-info .base-button span');
+    if(capacityText)publicStats.capacity=capacityText+' чел.';
+    for(const field of ['population','duration','area'])if(catastrophePopup[field])publicStats[field]=catastrophePopup[field];
     const table = document.querySelector('.open-cards-table.hide-in-mobile') || document.querySelector('.open-cards-table');
     const players = roster.update(table ? [...table.querySelectorAll('.open-cards-table-tr')].map((row,i)=> {
       const id = row.querySelector('.open-cards-table__first-cell');
@@ -38,7 +44,7 @@
     const additionalTime=get('.game-header .additional-time');
     const phase=active?.querySelector('.act-discuss')?'discussion':active?.querySelector('.act-judge')?'voting':active?.querySelector('.act-game')?'game':'';
     const seconds = get('.game-header .game-timer') || get('.game-mobile-header .game-timer');
-    return {source:'shelter42.ru/online/game', updatedAt:Date.now(), players, catastrophe:get('.bunker-main__title h3')||catastrophePopup.title||'', catastropheDescription:get('.bunker-main__text')||catastrophePopup.description||'', catastrophePopup, catastropheImage, bunkerPopup, bunker, round, stage, phase, additionalTime, current, next, timer:additionalTime?seconds.replace(additionalTime,'').trim():seconds, final:!!document.querySelector('.final')};
+    return {source:'shelter42.ru/online/game', updatedAt:Date.now(), players, capacity:publicStats.capacity||'', duration:publicStats.duration||'', population:publicStats.population||'', area:publicStats.area||'', catastrophe:title||'', catastropheDescription:get('.bunker-main__text')||catastrophePopup.description||'', catastrophePopup, catastropheImage, bunkerPopup, bunker, round, stage, phase, additionalTime, current, next, timer:additionalTime?seconds.replace(additionalTime,'').trim():seconds, final:!!document.querySelector('.final')};
   }
   function publish() {
     if(!document.querySelector('.bunker-info, .open-cards-table, .disaster-card-modal, .bunker-card-modal')&&!previous) return;
