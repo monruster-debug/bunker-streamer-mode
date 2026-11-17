@@ -1,30 +1,33 @@
 'use strict';
 // Timelines are owned by their content; timer updates do not restart them.
 window.S42Motion = {
- createCarousel(track, createSlide, intervalMs=30000){
-  let signature='', timer=0, resetTimer=0, index=0, length=0;
-  const reset=()=>{track.style.transition='none';track.style.transform='translateX(0px)';index=0;};
-  const position=()=>`translateX(-${index*((track.firstElementChild?.offsetWidth||track.firstElementChild?.getBoundingClientRect().width||212)+(parseFloat(getComputedStyle(track).columnGap)||4))}px)`;
-  const observer=new ResizeObserver(()=>{track.style.transition='none';track.style.transform=position();});
-  observer.observe(track);
-  const step=()=>{
-   if(length<2)return;
-   index++;
-   track.style.transition='transform 650ms ease-in-out';
-   track.style.transform=position();
-   if(index===length)resetTimer=setTimeout(reset,700);
-  };
+ createCarousel(track, createSlide, cycleMs=60000){
+  let signature='',cards=[],animation=null,frame=0;
+  function measure(){
+   const progress=animation?(Number(animation.currentTime)||0)%cycleMs:0;
+   animation?.cancel();animation=null;
+   if(!cards.length){track.replaceChildren();return;}
+   const originals=cards.map((card,i)=>createSlide(card,i));
+   track.replaceChildren(...originals);
+   const width=track.firstElementChild?.offsetWidth||228;
+   const gap=parseFloat(getComputedStyle(track).columnGap)||0;
+   const distance=cards.length*(width+gap);
+   const viewportWidth=track.clientWidth||track.parentElement?.clientWidth||width;
+   const copies=Math.ceil(viewportWidth/distance)+1;
+   for(let copy=0;copy<copies;copy++)cards.forEach((card,i)=>{
+    const clone=createSlide(card,i);clone.setAttribute('aria-hidden','true');track.append(clone);
+   });
+   animation=track.animate([{transform:'translateX(0px)'},{transform:`translateX(-${distance}px)`}],{duration:cycleMs,iterations:Infinity,easing:'linear'});
+   animation.currentTime=progress;
+  }
+  const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(measure);};
+  const observer=new ResizeObserver(schedule);observer.observe(track);
   return {
-   update(cards){
-    const next=JSON.stringify(cards);
-    if(next===signature)return;
-    signature=next;clearInterval(timer);clearTimeout(resetTimer);length=cards.length;reset();
-    const slides=cards.map((card,i)=>createSlide(card,i));
-    if(length>1){const clone=createSlide(cards[0],0);clone.setAttribute('aria-hidden','true');slides.push(clone);}
-    track.replaceChildren(...slides);
-    if(length>1)timer=setInterval(step,intervalMs);
+   update(value){
+    const next=JSON.stringify(value);if(next===signature)return;
+    signature=next;cards=value;animation?.cancel();animation=null;schedule();
    },
-   destroy(){clearInterval(timer);clearTimeout(resetTimer);observer.disconnect();}
+   destroy(){observer.disconnect();animation?.cancel();cancelAnimationFrame(frame);}
   };
  },
  createCredits(viewport,text){

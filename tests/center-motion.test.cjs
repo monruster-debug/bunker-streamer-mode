@@ -8,21 +8,6 @@ function setup(){
  runInNewContext(readFileSync('center-motion.js','utf8'),scope);
  return {api:scope.window.S42Motion,intervals,timeouts,flush(){for(const fn of frames.values())fn();frames.clear();}};
 }
-test('carousel waits 30 seconds, slides horizontally, wraps, and survives unchanged game updates',()=>{
- const s=setup(),track={style:{},replaceChildren(...nodes){this.nodes=nodes;}},card=v=>({value:v,setAttribute(){}});
- const c=s.api.createCarousel(track,card),cards=[{title:'Один'},{title:'Два'}];
- c.update(cards);assert.equal(track.nodes.length,3);const timer=[...s.intervals.values()][0];assert.equal(timer.ms,30000);
- timer.fn();assert.equal(track.style.transform,'translateX(-216px)');
- c.update(cards);assert.equal(track.style.transform,'translateX(-216px)');assert.equal(s.intervals.size,1);
- timer.fn();assert.equal(track.style.transform,'translateX(-432px)');[...s.timeouts.values()][0]();assert.equal(track.style.transform,'translateX(0px)');
- c.update([{title:'Один'}]);assert.equal(s.intervals.size,0);assert.equal(track.nodes.length,1);c.destroy();
-});
-test('carousel measures scaled card width instead of assuming a 212px card',()=>{
- const s=setup(),track={style:{},firstElementChild:{getBoundingClientRect:()=>({width:160})},replaceChildren(){}};
- const c=s.api.createCarousel(track,()=>({setAttribute(){}}));
- c.update([{title:'Один'},{title:'Два'}]);[...s.intervals.values()][0].fn();
- assert.equal(track.style.transform,'translateX(-164px)');c.destroy();
-});
 test('credits hold for 2 minutes then reach the end and return without resets on unchanged content',()=>{
  const s=setup();let cancelled=0,started=0,frames,timing;
  const text={scrollHeight:400,animate:(f,t)=>{started++;frames=f;timing=t;return {cancel:()=>cancelled++};}},view={clientHeight:200};
@@ -32,16 +17,14 @@ test('credits hold for 2 minutes then reach the end and return without resets on
  text.scrollHeight=100;c.update('Короткое описание');s.flush();assert.equal(cancelled,1);assert.equal(started,1);c.destroy();
 });
 
-test('carousel uses the sidebar gap instead of the center gap',()=>{
- const s=setup(),track={style:{},gap:'10px',firstElementChild:{getBoundingClientRect:()=>({width:228})},replaceChildren(){}};
- const c=s.api.createCarousel(track,()=>({setAttribute(){}}));
- c.update([{title:'Один'},{title:'Два'}]);[...s.intervals.values()][0].fn();
- assert.equal(track.style.transform,'translateX(-238px)');c.destroy();
-});
 
-test('carousel translation stays in canvas pixels when the entire overlay is scaled down',()=>{
- const s=setup(),track={style:{},gap:'4px',firstElementChild:{offsetWidth:228,getBoundingClientRect:()=>({width:215.77})},replaceChildren(){}};
- const c=s.api.createCarousel(track,()=>({setAttribute(){}}));
- c.update([{title:'Один'},{title:'Два'}]);[...s.intervals.values()][0].fn();
- assert.equal(track.style.transform,'translateX(-232px)');c.destroy();
+test('carousel loops continuously in 60 seconds with enough copies to fill a wide viewport',()=>{
+ const s=setup();let starts=0,cancels=0,keyframes,timing;
+ const track={style:{},clientWidth:568,firstElementChild:{offsetWidth:228},nodes:[],replaceChildren(...n){this.nodes=n;},append(n){this.nodes.push(n);},animate(f,t){starts++;keyframes=f;timing=t;return {currentTime:0,cancel(){cancels++;}};}};
+ const slide=card=>({card,setAttribute(k,v){this[k]=v;}}),c=s.api.createCarousel(track,slide),cards=[{title:'А'},{title:'Б'}];
+ c.update(cards);s.flush();assert.equal(timing.duration,60000);assert.equal(timing.iterations,Infinity);assert.equal(timing.easing,'linear');assert.equal(keyframes[1].transform,'translateX(-464px)');
+ assert.equal(track.nodes.length,8);assert.equal(track.nodes[2]['aria-hidden'],'true');
+ c.update(cards);s.flush();assert.equal(starts,1);
+ track.gap='10px';c.update([{title:'Один'}]);s.flush();assert.equal(keyframes[1].transform,'translateX(-238px)');assert.ok(track.nodes.length*238>=568+238);
+ c.update([]);s.flush();assert.equal(track.nodes.length,0);assert.ok(cancels>=2);c.destroy();
 });
