@@ -1,7 +1,7 @@
 <!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Убежище 42 Stream 0.4</title><link rel="stylesheet" href="overlay.css"></head>
 <body><div id="app">
-<header><div class="brand">УБЕЖИЩЕ <em>42</em><small>STREAM</small></div><div class="stage"><span id="stage">Ожидание игры</span><strong id="clock"></strong></div><button class="settings-btn" id="settings-toggle" type="button">⚙ Настройка камер</button></header>
-<section id="config" class="config" hidden>
+<button class="settings-btn" id="settings-toggle" type="button" title="Настройка камер (Esc)">⚙ Настройка камер</button>
+<section id="config" class="config" role="dialog" aria-modal="true" aria-label="Настройка камер" hidden>
  <div class="config-head"><div><h2>Подключение видеокамер</h2><p>Разрешение на захват запрашивается только по нажатию кнопки. Видео обрабатывается локально, в расширении.</p></div><button type="button" id="hide-settings" class="subtle">Закрыть</button></div>
  <div class="controls"><button type="button" id="capture-screen">Захватить окно Discord / OBS</button><button type="button" id="capture-camera">Выбрать камеру / OBS Virtual Camera</button><button type="button" id="stop-video" class="danger">Отключить видео</button></div>
  <div class="controlrow"><label>Устройство камеры <select id="camera-device"><option value="">По умолчанию (или сначала разрешите камеру)</option></select></label><button type="button" id="refresh-devices" class="subtle">Обновить список</button><label>Сетка источника <select id="source-grid"><option value="4x3">4 × 3 (12 камер)</option><option value="3x4">3 × 4 (12 камер)</option><option value="4x4">4 × 4 (16 камер)</option><option value="3x3">3 × 3 (9 камер)</option><option value="2x2">2 × 2 (4 камеры)</option></select></label></div>
@@ -10,6 +10,10 @@
  <div class="tools"><button type="button" id="auto-map" class="subtle">Привязать по порядку игроков</button><button type="button" id="save-settings" class="subtle">Сохранить настройки</button></div>
  <p class="hint">Важно: захватывается одна общая видеосетка. Если Discord меняет расположение участников, привязку необходимо проверить повторно. OBS Virtual Camera также должна выдавать готовую сетку камер, а не одну камеру.</p>
 </section>
-<main><div class="table-area"><div class="section-heading"><h2>Участники убежища</h2><span id="player-count">До 12 игроков · 4 × 3</span></div><section id="people" class="people" aria-label="Игроки и открытые карты"><div class="waiting"><h2>Ожидаем игроков</h2><p>Откройте запущенную игру и нажмите «Проверить подключение к игре» в меню расширения. Открытые карты появятся здесь.</p></div></section></div><aside><div class="panel"><div class="eyebrow">01 / КАТАСТРОФА</div><h1 id="catastrophe">Ожидание данных</h1><p id="cat-description"></p></div><div class="panel"><div class="eyebrow">02 / ВНУТРИ БУНКЕРА</div><div id="bunker"><p>Карты убежища появятся после подключения к игре.</p></div></div><div class="panel"><div class="eyebrow">03 / ХОД ИГРЫ</div><div id="turn"><p>Игра ещё не подключена</p></div></div></aside></main>
-<footer><span>Данные из открытой вкладки игры · видео не передаётся на сервер</span><span id="status">Ожидание подключения</span></footer>
+<main id="people" class="people" aria-label="Игроки и открытые карты"></main>
+<section id="game-center" class="game-center" aria-label="Состояние игры">
+ <div class="center-content"><div class="center-cell center-catastrophe"><h1 id="catastrophe"></h1><p id="cat-description"></p></div><div class="center-cell center-brand"><img src="assets/shelter42.svg" width="230" height="42" alt="Убежище 42"><span id="stage" class="sr-only">Ожидание игры</span></div><div class="center-cell"><div id="bunker"></div><span id="turn" class="sr-only"></span></div></div>
+ <div class="center-stats"><div class="center-stat"><span>Пребывание:</span><span id="duration">—</span></div><div class="center-stat center-clock"><strong id="clock">—</strong></div><div class="center-stat"><span>Людей:</span><span id="population">—</span></div></div>
+</section>
+<div class="sr-only" id="status" role="status">Ожидание подключения</div>
 </div><script src="overlay.js"></script></body></html>

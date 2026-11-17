@@ -3,7 +3,8 @@ const $=id=>document.getElementById(id);
 let game=null, stream=null, sourceKind=null, raf=0, lastSignature='', settingsOpen=false;
 const sourceVideo=$('source-video');
 let options={grid:'4x3',left:0,top:0,right:0,bottom:0,map:{}};
-const CATEGORIES=['Профессия','Здоровье','Биология','Факты','Хобби','Багаж','Особое условие'];
+const CATEGORIES=['Профессия','Здоровье','Биология','Хобби','Багаж','Факты'];
+const CARD_ICONS={'Профессия':'profession','Здоровье':'health','Биология':'biology','Факты':'fact','Хобби':'hobby','Багаж':'baggage'};
 const safeText=(s)=>String(s??'');
 function gridDims(){const [c,r]=options.grid.split('x').map(Number);return {cols:c,rows:r,total:c*r};}
 function playerKey(p,i){return `${p.number||'Игрок '+(i+1)}:${p.name||''}`;}
@@ -74,29 +75,35 @@ function createPlayer(p,i){
  else if(game?.current===p.name){const tag=document.createElement('span');tag.className='turnTag';tag.textContent='ХОДИТ';name.append(tag);}
  const cards=document.createElement('div');cards.className='cards';
  const known=p.cards||{};
- const biology=document.createElement('div');biology.className='biology';biology.textContent=known['Биология']||'Биология не раскрыта';
  const left=document.createElement('div');left.className='card-stack card-stack-left';
  const right=document.createElement('div');right.className='card-stack card-stack-right';
- for(const k of [...CATEGORIES.filter(k=>k!=='Биология'),...Object.keys(known).filter(k=>!CATEGORIES.includes(k))]){
-  const v=known[k],card=document.createElement('div');card.className='card'+(v?'':' unrevealed');card.title=`${k}: ${v||'не раскрыто'}`;
-  const label=document.createElement('span');label.textContent=v?safeText(v):k;card.append(label);
-  (['Профессия','Здоровье','Факты'].includes(k)?left:right).append(card);
+ for(const k of CATEGORIES){
+  const v=known[k]||(k==='Факты'?known['Факт']:null),card=document.createElement('div');card.className='card card-'+CARD_ICONS[k]+(v?'':' unrevealed');card.title=`${k}: ${v||'не раскрыто'}`;
+  const label=document.createElement('span');label.textContent=v?safeText(v):(k==='Факты'?'Факт':k);
+  const icon=document.createElement('img');icon.src=`assets/${CARD_ICONS[k]}.svg`;icon.width=16;icon.height=16;icon.alt='';
+  if(['Профессия','Здоровье','Биология'].includes(k)){card.append(icon,label);left.append(card);}else{card.append(label,icon);right.append(card);}
  }
- cards.append(left,right);name.append(biology);
+ cards.append(left,right);
  article.append(cam,name,cards);return article;
 }
 function render(){
- if(!game){$('status').textContent='Откройте игру и проверьте подключение в меню расширения';return;}
+ if(!game){$('status').textContent='Откройте игру и проверьте подключение в меню расширения';renderPlayers([]);return;}
  $('stage').textContent=game.final?'Финал':`${game.round?'Круг '+game.round:'Игра'}${game.stage?' · '+game.stage:''}`;
  $('clock').textContent=game.timer||'';
- $('catastrophe').textContent=game.catastrophe||'Нет данных';$('cat-description').textContent=game.catastropheDescription||'';
- const people=$('people');people.replaceChildren(...(game.players||[]).map(createPlayer));
- $('player-count').textContent=`${game.players?.length||0} / 12 игроков · ${game.players?.filter(p=>!p.eliminated).length||0} в игре`;
+ $('catastrophe').textContent=game.catastrophe||'';$('cat-description').textContent=game.catastropheDescription||'';
+ renderPlayers(game.players||[]);
+ $('duration').textContent=game.duration||'—';$('population').textContent=game.population||'—';
  const bunker=$('bunker');bunker.replaceChildren();for(const card of game.bunker||[]){const div=document.createElement('div');div.className='bunker-item'+(card.closed?' muted':'');div.textContent=card.closed?'Закрытая карта':card.title||'Карта бункера';bunker.append(div);}
  const current=document.createElement('div');current.className='turn-current';current.textContent=game.final?'Игра завершена':game.current||'Ход не определён';
  const next=document.createElement('div');next.className='turn-next';next.textContent=game.final?'Финал партии':`Следующий ход → ${game.next||'ожидание'}`;$('turn').replaceChildren(current,next);
  $('status').textContent=`Данные: ${new Date(game.updatedAt).toLocaleTimeString('ru-RU')} · Видео: ${stream?'подключено':'не подключено'}`;
  if(stream&&!raf)drawLoop();
+}
+function renderPlayers(players){
+ const center=$('game-center');
+ const slots=Array.from({length:10},(_,i)=>createPlayer(players[i]||{number:`Игрок ${i+1}`,name:'Игрок '+(i+1),cards:{}},i));
+ slots.forEach((slot,i)=>slot.style.gridArea=[[1,1],[1,2],[1,3],[1,4],[2,1],[2,4],[3,1],[3,2],[3,3],[3,4]][i].join(' / '));
+ $('people').replaceChildren(...slots,center);
 }
 function drawLoop(){
  if(!stream||sourceVideo.readyState<2){raf=stream?requestAnimationFrame(drawLoop):0;return;}
@@ -116,6 +123,7 @@ function drawLoop(){
  raf=requestAnimationFrame(drawLoop);
 }
 function toggleSettings(next){settingsOpen=next;$('config').hidden=!next;$('settings-toggle').textContent=next?'× Скрыть настройки':'⚙ Настройка камер';render();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')toggleSettings(!settingsOpen);});
 function setGame(s){if(!s)return;game=s;const sign=JSON.stringify(s);if(sign!==lastSignature){lastSignature=sign;render();}}
 $('settings-toggle').addEventListener('click',()=>toggleSettings(!settingsOpen));
 $('hide-settings').addEventListener('click',()=>toggleSettings(false));
@@ -131,3 +139,4 @@ chrome.storage.local.get(['gameState','streamVideoOptions'],r=>{if(r.streamVideo
 chrome.storage.onChanged.addListener((changes,area)=>{if(area==='local'&&changes.gameState)setGame(changes.gameState.newValue);});
 setInterval(()=>{if(!game||Date.now()-game.updatedAt>12000)$('status').textContent='Нет свежих данных игры · проверьте вкладку';},5000);
 window.addEventListener('pagehide',()=>{if(stream)for(const t of stream.getTracks())t.stop();});
+render();
