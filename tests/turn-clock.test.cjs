@@ -29,5 +29,7 @@ test('turn clock follows public player identity, discussion, extension and final
  scope.updateTurnClock({...state,final:true});
  assert.equal(elements['clock-player'].hidden,true);
  assert.equal(elements['clock-name'].textContent,'');
- assert.equal(elements['clock-description'].hidden,true);
+ assert.equal(elements['clock-description'].hidden,false);
+ assert.equal(elements['clock-description'].textContent,'shelter42.ru');
+ assert.equal(elements['clock'].textContent,'Финал');
 });

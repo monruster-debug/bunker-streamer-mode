@@ -6,6 +6,7 @@ const catastropheView=window.S42CatastropheView.create($('catastrophe-popup'));
 const bunkerView=window.S42BunkerView.create($('bunker-popup'));
 const credits=window.S42Motion.createCredits($('cat-viewport'),$('cat-description'));
 const carousel=window.S42Motion.createCarousel($('bunker'),createBunkerCard);
+const fireworks=window.S42Fireworks.create([document.querySelector('.center-catastrophe'),document.querySelector('.center-bunker')]);
 function createBunkerCard(card,i){
  const slide=document.createElement('article');slide.className='bunker-slide'+(card.closed?' closed':'');
  const content=document.createElement('div');content.className='bunker-card-content';
@@ -133,11 +134,11 @@ function createPlayer(p,i){
  return article;
 }
 function updateTurnClock(state){
- const parts=String(state.timer||'').split(':');
+ const parts=String(state.final?'Финал':state.timer||'').split(':');
  const clock=$('clock');
  if(parts.length===2){
   const segments=[parts[0],':',parts[1]].map(text=>{const span=document.createElement('span');span.textContent=text;return span;});clock.replaceChildren(...segments);
- }else clock.textContent=state.timer||'';
+ }else clock.textContent=state.final?'Финал':state.timer||'';
  const discussion=!state.final&&(state.phase?state.phase==='discussion':/обсуждени/i.test((state.stage||'')+' '+(state.current||'')));
  const voting=!state.final&&(state.phase?state.phase==='voting':/голосовани/i.test((state.stage||'')+' '+(state.current||'')));
  const currentPlayer=!state.final&&!discussion&&!voting&&(state.players||[]).find(p=>p.name===state.current&&!p.eliminated);
@@ -146,8 +147,8 @@ function updateTurnClock(state){
  $('clock-name').textContent=currentPlayer?.name||'';
  $('discussion-icon').hidden=!discussion;
  $('voting-icon').hidden=!voting;
- $('clock-description').hidden=!discussion&&!voting&&!currentPlayer;
- $('clock-description').textContent=voting?'Идёт голосование...':discussion?'Уважаемые игроки, пришло время обсудить открытые карты...':currentPlayer?'Думает какую карту вам показать...':'';
+ $('clock-description').hidden=!state.final&&!discussion&&!voting&&!currentPlayer;
+ $('clock-description').textContent=state.final?'shelter42.ru':voting?'Идёт голосование...':discussion?'Уважаемые игроки, пришло время обсудить открытые карты...':currentPlayer?'Думает какую карту вам показать...':'';
  $('clock-additional').textContent=state.additionalTime||'';
  $('clock-additional').hidden=!discussion||!state.additionalTime;
 }
@@ -173,13 +174,15 @@ function renderCameraAssignments(){
  });
 }
 function render(){
+ $('game-center').classList.toggle('is-final',!!game?.final);
+ fireworks.update(!!game?.final);
  renderCameraAssignments();
  catastropheView.update(game);
  bunkerView.update(game);
  if(!game){$('status').textContent='Откройте игру и проверьте подключение в меню расширения';renderPlayers([]);return;}
  $('stage').textContent=game.final?'Финал':`${game.round?'Круг '+game.round:'Игра'}${game.stage?' · '+game.stage:''}`;
  updateTurnClock(game);
- $('catastrophe').textContent=game.catastrophe||'';credits.update(game.catastropheDescription||'');
+ $('catastrophe').textContent=game.catastrophe||'';credits.update(game.final?'':game.catastropheDescription||'');
  const nuclear=game.catastrophe==='Ядерная война';
  const image=$('cat-center-image');let source=game.catastropheImage||game.catastrophePopup?.image||'';
  try{if(source&&new URL(source).protocol!=='https:')source='';}catch{source='';}
@@ -192,7 +195,7 @@ function render(){
  renderPlayers(game.players||[]);
  $('duration').textContent=game.duration||'—';$('population').textContent=game.population||'—';
  $('area').textContent=game.area||'—';$('capacity').textContent=game.capacity||'—';
- carousel.update(game.bunker||[]);
+ carousel.update(game.final?[]:game.bunker||[]);
  const current=document.createElement('div');current.className='turn-current';current.textContent=game.final?'Игра завершена':game.current||'Ход не определён';
  const next=document.createElement('div');next.className='turn-next';next.textContent=game.final?'Финал партии':`Следующий ход → ${game.next||'ожидание'}`;$('turn').replaceChildren(current,next);
  $('status').textContent=`Данные: ${new Date(game.updatedAt).toLocaleTimeString('ru-RU')} · Видео: ${stream?'подключено':'не подключено'}`;
@@ -275,3 +278,5 @@ setInterval(()=>{if(!game||Date.now()-game.updatedAt>12000)$('status').textConte
 window.addEventListener('pagehide',()=>{if(stream)for(const t of stream.getTracks())t.stop();});
 window.addEventListener('pagehide',()=>{carousel.destroy();credits.destroy();});
 render();
+
+window.addEventListener('pagehide',()=>fireworks.destroy());
