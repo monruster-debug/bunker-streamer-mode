@@ -15,3 +15,10 @@ test('eliminated players retain only previously public cards when source clears 
  assert.equal(players[0].cards.Профессия,'Врач');assert.equal(players[0].cards.Здоровье,undefined);
  players=roster.update([{name:'Б',cards:{}}]);assert.equal(players[0].cards.Профессия,'Врач');
 });
+test('new game with the same nicknames replaces the previous eliminated roster order',()=>{
+ const scope={window:{}};runInNewContext(fs.readFileSync('game-dom.js','utf8'),scope);
+ const roster=scope.window.S42GameDOM.createRoster([{name:'Таракан'},{name:'FRAITAG'},{name:'Кот'},{name:'Репка',eliminated:true,cards:{Здоровье:'Старое значение'}}]);
+ const players=roster.update(['Таракан','Репка','FRAITAG','Кот'].map(name=>({name,cards:{}})));
+ assert.equal(players.map(p=>p.name).join(','),'Таракан,Репка,FRAITAG,Кот');
+ assert.equal(players[1].number,'Игрок 2');assert.equal(players[1].cards.Здоровье,undefined);
+});

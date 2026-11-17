@@ -5,6 +5,12 @@ window.S42GameDOM={
   let roster=seed;
   return {update(players){
    if(!players.length)return [];
+   // Before the first elimination, the table is the authoritative initial order.
+   // A new game can reuse every nickname from the previous game's saved roster.
+   if(players.every(p=>!p.eliminated)&&players.length>=roster.length){
+    roster=players.map((p,i)=>({...p,number:'Игрок '+(i+1)}));
+    return roster;
+   }
    const names=new Set(players.map(p=>p.name));
    if(!roster.some(p=>names.has(p.name)))roster=[];
    const incoming=new Map(players.map(p=>[p.name,p]));
