@@ -1,0 +1,1 @@
+{"name":"shelter42-stream","private":true,"type":"module","scripts":{"build":"node scripts/build.mjs","server":"node --env-file=.env server/index.mjs","check":"node --test tests/*.test.mjs"},"dependencies":{"livekit-client":"^2.17.0","livekit-server-sdk":"^2.13.0"},"devDependencies":{"esbuild":"^0.25.0"}}
