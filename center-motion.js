@@ -4,11 +4,14 @@ window.S42Motion = {
  createCarousel(track, createSlide, intervalMs=30000){
   let signature='', timer=0, resetTimer=0, index=0, length=0;
   const reset=()=>{track.style.transition='none';track.style.transform='translateX(0px)';index=0;};
+  const position=()=>`translateX(-${index*((track.firstElementChild?.getBoundingClientRect().width||212)+4)}px)`;
+  const observer=new ResizeObserver(()=>{track.style.transition='none';track.style.transform=position();});
+  observer.observe(track);
   const step=()=>{
    if(length<2)return;
    index++;
    track.style.transition='transform 650ms ease-in-out';
-   track.style.transform=`translateX(-${index*216}px)`;
+   track.style.transform=position();
    if(index===length)resetTimer=setTimeout(reset,700);
   };
   return {
@@ -21,7 +24,7 @@ window.S42Motion = {
     track.replaceChildren(...slides);
     if(length>1)timer=setInterval(step,intervalMs);
    },
-   destroy(){clearInterval(timer);clearTimeout(resetTimer);}
+   destroy(){clearInterval(timer);clearTimeout(resetTimer);observer.disconnect();}
   };
  },
  createCredits(viewport,text){

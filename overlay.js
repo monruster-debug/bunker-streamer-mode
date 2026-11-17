@@ -83,7 +83,6 @@ function createPlayer(p,i){
  select.hidden=!settingsOpen;select.onchange=()=>{options.map[key]=Number(select.value);save().catch(()=>{});};cam.append(select);
  const name=document.createElement('div');name.className='name';const small=document.createElement('small');small.textContent=String(p.number||i+1).replace('Игрок ','');const title=document.createElement('span');title.textContent=safeText(p.name);name.append(small,title);
  if(p.eliminated){const tag=document.createElement('span');tag.className='deadTag';tag.textContent='ИЗГНАН';name.append(tag);}
- else if(game?.current===p.name){const tag=document.createElement('span');tag.className='turnTag';tag.textContent='ХОДИТ';name.append(tag);}
  const cards=document.createElement('div');cards.className='cards';
  const known=p.cards||{};
  const left=document.createElement('div');left.className='card-stack card-stack-left';

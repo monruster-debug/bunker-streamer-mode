@@ -17,6 +17,12 @@ test('carousel waits 30 seconds, slides horizontally, wraps, and survives unchan
  timer.fn();assert.equal(track.style.transform,'translateX(-432px)');[...s.timeouts.values()][0]();assert.equal(track.style.transform,'translateX(0px)');
  c.update([{title:'Один'}]);assert.equal(s.intervals.size,0);assert.equal(track.nodes.length,1);c.destroy();
 });
+test('carousel measures scaled card width instead of assuming a 212px card',()=>{
+ const s=setup(),track={style:{},firstElementChild:{getBoundingClientRect:()=>({width:160})},replaceChildren(){}};
+ const c=s.api.createCarousel(track,()=>({setAttribute(){}}));
+ c.update([{title:'Один'},{title:'Два'}]);[...s.intervals.values()][0].fn();
+ assert.equal(track.style.transform,'translateX(-164px)');c.destroy();
+});
 test('credits hold for 2 minutes then reach the end and return without resets on unchanged content',()=>{
  const s=setup();let cancelled=0,started=0,frames,timing;
  const text={scrollHeight:400,animate:(f,t)=>{started++;frames=f;timing=t;return {cancel:()=>cancelled++};}},view={clientHeight:200};
