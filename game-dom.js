@@ -9,7 +9,11 @@ window.S42GameDOM={
    if(!roster.some(p=>names.has(p.name)))roster=[];
    const incoming=new Map(players.map(p=>[p.name,p]));
    const existing=new Set(roster.map(p=>p.name));
-   roster=roster.map(p=>incoming.has(p.name)?{...incoming.get(p.name),number:p.number}:{...p,eliminated:true,voters:[]});
+   roster=roster.map(p=>{
+    const next=incoming.get(p.name);
+    if(!next)return {...p,eliminated:true,voters:[]};
+    return {...next,number:p.number,cards:next.eliminated?{...p.cards,...next.cards}:next.cards};
+   });
    for(const p of players)if(!existing.has(p.name))roster.push({...p,number:'Игрок '+(roster.length+1)});
    return roster;
   }};
