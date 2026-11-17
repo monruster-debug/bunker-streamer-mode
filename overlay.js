@@ -22,6 +22,13 @@ function createBunkerCard(card,i){
  slide.append(content);return slide;
 }
 const wideLayout=window.matchMedia('(min-width:2560px)');
+function fitCanvas(){
+ const fit=window.S42Layout.fit(window.innerWidth,window.innerHeight,wideLayout.matches);
+ const style=$('app').style;
+ style.setProperty('--overlay-scale',fit.scale);
+ style.setProperty('--overlay-left',fit.left+'px');style.setProperty('--overlay-top',fit.top+'px');
+}
+fitCanvas();window.addEventListener('resize',fitCanvas);
 function createSlotState(dead=false){
  const state=document.createElement('div');state.className='slot-state';
  const brand=document.createElement('img');brand.className='slot-brand';brand.src='assets/empty-brand.svg';brand.width=337.097;brand.height=61.2305;brand.alt='';
@@ -149,7 +156,7 @@ function renderPlayers(players){
  const parent=wide?$('app'):$('people');if(center.parentElement!==parent)parent.append(center);
  slots.forEach(slot=>$('people').append(slot));
 }
-wideLayout.addEventListener('change',()=>render());
+wideLayout.addEventListener('change',()=>{fitCanvas();render();});
 
 function drawLoop(){
  if(!stream||sourceVideo.readyState<2){raf=stream?requestAnimationFrame(drawLoop):0;return;}

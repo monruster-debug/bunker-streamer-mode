@@ -4,7 +4,7 @@ window.S42Motion = {
  createCarousel(track, createSlide, intervalMs=30000){
   let signature='', timer=0, resetTimer=0, index=0, length=0;
   const reset=()=>{track.style.transition='none';track.style.transform='translateX(0px)';index=0;};
-  const position=()=>`translateX(-${index*((track.firstElementChild?.getBoundingClientRect().width||212)+(parseFloat(getComputedStyle(track).columnGap)||4))}px)`;
+  const position=()=>`translateX(-${index*((track.firstElementChild?.offsetWidth||track.firstElementChild?.getBoundingClientRect().width||212)+(parseFloat(getComputedStyle(track).columnGap)||4))}px)`;
   const observer=new ResizeObserver(()=>{track.style.transition='none';track.style.transform=position();});
   observer.observe(track);
   const step=()=>{

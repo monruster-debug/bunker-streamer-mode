@@ -38,3 +38,10 @@ test('carousel uses the sidebar gap instead of the center gap',()=>{
  c.update([{title:'Один'},{title:'Два'}]);[...s.intervals.values()][0].fn();
  assert.equal(track.style.transform,'translateX(-238px)');c.destroy();
 });
+
+test('carousel translation stays in canvas pixels when the entire overlay is scaled down',()=>{
+ const s=setup(),track={style:{},gap:'4px',firstElementChild:{offsetWidth:228,getBoundingClientRect:()=>({width:215.77})},replaceChildren(){}};
+ const c=s.api.createCarousel(track,()=>({setAttribute(){}}));
+ c.update([{title:'Один'},{title:'Два'}]);[...s.intervals.values()][0].fn();
+ assert.equal(track.style.transform,'translateX(-232px)');c.destroy();
+});
