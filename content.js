@@ -2,7 +2,7 @@
   if (window.__s42StreamerInstalled) return;
   window.__s42StreamerInstalled = true;
   const clean = (e) => e?.textContent?.replace(/\s+/g,' ').trim() || '';
-  const get = (sel, root=document) => clean(root.querySelector(sel));
+  const get = (sel, root=document) => clean(root?.querySelector(sel));
   let previous = '', timer = null;
   function snapshot() {
     const table = document.querySelector('.open-cards-table.hide-in-mobile') || document.querySelector('.open-cards-table');
@@ -27,7 +27,7 @@
     const round = get('.status-item__number',active);
     const bunker = [...document.querySelectorAll('.bunker-card')].map(card => {
        const closed=card.classList.contains('bunker-card__close');
-       return {closed, title: closed ? '' : get('.bunker-card__front .bunker-card__title',card)};
+       return {closed, title: closed ? '' : get('.bunker-card__front .bunker-card__title',card), description:closed?'':get('.bunker-card__back .bunker-card__title',card)};
     });
     const current = get('.game-header .current-status .base-button__text');
     const next = get('.game-header .next-status .base-button__text');

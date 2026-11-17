@@ -12,8 +12,8 @@
 </section>
 <main id="people" class="people" aria-label="Игроки и открытые карты"></main>
 <section id="game-center" class="game-center" aria-label="Состояние игры">
- <div class="center-content"><div class="center-cell center-catastrophe"><h1 id="catastrophe"></h1><p id="cat-description"></p></div><div class="center-cell center-brand"><img src="assets/shelter42.svg" width="230" height="42" alt="Убежище 42"><span id="stage" class="sr-only">Ожидание игры</span></div><div class="center-cell"><div id="bunker"></div><span id="turn" class="sr-only"></span></div></div>
- <div class="center-stats"><div class="center-stat"><span>Пребывание:</span><span id="duration">—</span></div><div class="center-stat center-clock"><strong id="clock">—</strong></div><div class="center-stat"><span>Людей:</span><span id="population">—</span></div></div>
+ <div class="center-content"><div class="center-cell center-catastrophe"><h1 id="catastrophe"></h1><div id="cat-viewport" class="cat-viewport"><p id="cat-description"></p></div></div><div class="center-cell center-clock"><strong id="clock">—</strong><span id="stage" class="sr-only">Ожидание игры</span></div><div class="center-cell center-bunker"><div class="bunker-viewport"><div id="bunker" class="bunker-track"></div></div><span id="turn" class="sr-only"></span></div></div>
+ <div class="center-stats"><div class="center-stat"><img src="assets/stat-user.svg" width="16" height="16" alt=""><span class="stat-label">Пребывание:</span><span id="duration">—</span></div><div class="center-stat"><img src="assets/stat-user.svg" width="16" height="16" alt=""><span class="stat-label">Площадь:</span><span id="area">—</span></div><div class="center-stat"><img src="assets/stat-user.svg" width="16" height="16" alt=""><span class="stat-label">Кол-во мест:</span><span id="capacity">—</span></div><div class="center-stat"><img src="assets/stat-user.svg" width="16" height="16" alt=""><span class="stat-label">Людей:</span><span id="population">—</span></div></div>
 </section>
 <div class="sr-only" id="status" role="status">Ожидание подключения</div>
-</div><script src="overlay.js"></script></body></html>
+</div><script src="center-motion.js"></script><script src="overlay.js"></script></body></html>

@@ -2,6 +2,17 @@
 const $=id=>document.getElementById(id);
 let game=null, stream=null, sourceKind=null, raf=0, lastSignature='', settingsOpen=false;
 const sourceVideo=$('source-video');
+const credits=window.S42Motion.createCredits($('cat-viewport'),$('cat-description'));
+const carousel=window.S42Motion.createCarousel($('bunker'),createBunkerCard);
+function createBunkerCard(card){
+ const slide=document.createElement('article');slide.className='bunker-slide';
+ const background=document.createElement('img');background.className='bunker-background';background.src='assets/bunker-background.png';background.alt='';
+ const frame=document.createElement('img');frame.className='bunker-frame';frame.src='assets/bunker-frame.png';frame.alt='';
+ const content=document.createElement('div');content.className='bunker-card-content';
+ const title=document.createElement('h2');title.textContent=card.closed?'Закрытая карта':card.title||'Карта бункера';
+ const description=document.createElement('p');description.textContent=card.closed?'':card.description||'';
+ content.append(title,description);slide.append(background,frame,content);return slide;
+}
 let options={grid:'4x3',left:0,top:0,right:0,bottom:0,map:{}};
 const CATEGORIES=['Профессия','Здоровье','Биология','Хобби','Багаж','Факты'];
 const CARD_ICONS={'Профессия':'profession','Здоровье':'health','Биология':'biology','Факты':'fact','Хобби':'hobby','Багаж':'baggage'};
@@ -90,10 +101,11 @@ function render(){
  if(!game){$('status').textContent='Откройте игру и проверьте подключение в меню расширения';renderPlayers([]);return;}
  $('stage').textContent=game.final?'Финал':`${game.round?'Круг '+game.round:'Игра'}${game.stage?' · '+game.stage:''}`;
  $('clock').textContent=game.timer||'';
- $('catastrophe').textContent=game.catastrophe||'';$('cat-description').textContent=game.catastropheDescription||'';
+ $('catastrophe').textContent=game.catastrophe||'';credits.update(game.catastropheDescription||'');
  renderPlayers(game.players||[]);
  $('duration').textContent=game.duration||'—';$('population').textContent=game.population||'—';
- const bunker=$('bunker');bunker.replaceChildren();for(const card of game.bunker||[]){const div=document.createElement('div');div.className='bunker-item'+(card.closed?' muted':'');div.textContent=card.closed?'Закрытая карта':card.title||'Карта бункера';bunker.append(div);}
+ $('area').textContent=game.area||'—';$('capacity').textContent=game.capacity||'—';
+ carousel.update(game.bunker||[]);
  const current=document.createElement('div');current.className='turn-current';current.textContent=game.final?'Игра завершена':game.current||'Ход не определён';
  const next=document.createElement('div');next.className='turn-next';next.textContent=game.final?'Финал партии':`Следующий ход → ${game.next||'ожидание'}`;$('turn').replaceChildren(current,next);
  $('status').textContent=`Данные: ${new Date(game.updatedAt).toLocaleTimeString('ru-RU')} · Видео: ${stream?'подключено':'не подключено'}`;
@@ -103,7 +115,9 @@ function renderPlayers(players){
  const center=$('game-center');
  const slots=Array.from({length:10},(_,i)=>createPlayer(players[i]||{number:`Игрок ${i+1}`,name:'Игрок '+(i+1),cards:{}},i));
  slots.forEach((slot,i)=>slot.style.gridArea=[[1,1],[1,2],[1,3],[1,4],[2,1],[2,4],[3,1],[3,2],[3,3],[3,4]][i].join(' / '));
- $('people').replaceChildren(...slots,center);
+ $('people').querySelectorAll('.player').forEach(p=>p.remove());
+ if(center.parentElement!==$('people'))$('people').append(center);
+ slots.forEach(slot=>$('people').insertBefore(slot,center));
 }
 function drawLoop(){
  if(!stream||sourceVideo.readyState<2){raf=stream?requestAnimationFrame(drawLoop):0;return;}
@@ -139,4 +153,5 @@ chrome.storage.local.get(['gameState','streamVideoOptions'],r=>{if(r.streamVideo
 chrome.storage.onChanged.addListener((changes,area)=>{if(area==='local'&&changes.gameState)setGame(changes.gameState.newValue);});
 setInterval(()=>{if(!game||Date.now()-game.updatedAt>12000)$('status').textContent='Нет свежих данных игры · проверьте вкладку';},5000);
 window.addEventListener('pagehide',()=>{if(stream)for(const t of stream.getTracks())t.stop();});
+window.addEventListener('pagehide',()=>{carousel.destroy();credits.destroy();});
 render();
