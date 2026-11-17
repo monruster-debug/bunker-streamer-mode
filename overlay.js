@@ -148,7 +148,7 @@ function updateTurnClock(state){
 let previousAssignmentsRender='';
 function renderCameraAssignments(){
  if(!settingsOpen)return;
- const players=(game?.players||[]).slice(0,wideLayout.matches?12:10);
+ const players=(game?.players||[]).slice(0,12);
  const signature=JSON.stringify({players:players.map((p,i)=>playerKey(p,i)),grid:options.grid,map:options.map});
  if(signature===previousAssignmentsRender)return;
  previousAssignmentsRender=signature;
