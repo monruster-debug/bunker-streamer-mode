@@ -4,7 +4,7 @@ window.S42Motion = {
  createCarousel(track, createSlide, intervalMs=30000){
   let signature='', timer=0, resetTimer=0, index=0, length=0;
   const reset=()=>{track.style.transition='none';track.style.transform='translateX(0px)';index=0;};
-  const position=()=>`translateX(-${index*((track.firstElementChild?.getBoundingClientRect().width||212)+4)}px)`;
+  const position=()=>`translateX(-${index*((track.firstElementChild?.getBoundingClientRect().width||212)+(parseFloat(getComputedStyle(track).columnGap)||4))}px)`;
   const observer=new ResizeObserver(()=>{track.style.transition='none';track.style.transform=position();});
   observer.observe(track);
   const step=()=>{
@@ -19,8 +19,8 @@ window.S42Motion = {
     const next=JSON.stringify(cards);
     if(next===signature)return;
     signature=next;clearInterval(timer);clearTimeout(resetTimer);length=cards.length;reset();
-    const slides=cards.map(createSlide);
-    if(length>1){const clone=createSlide(cards[0]);clone.setAttribute('aria-hidden','true');slides.push(clone);}
+    const slides=cards.map((card,i)=>createSlide(card,i));
+    if(length>1){const clone=createSlide(cards[0],0);clone.setAttribute('aria-hidden','true');slides.push(clone);}
     track.replaceChildren(...slides);
     if(length>1)timer=setInterval(step,intervalMs);
    },

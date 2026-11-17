@@ -6,15 +6,33 @@ const catastropheView=window.S42CatastropheView.create($('catastrophe-popup'));
 const bunkerView=window.S42BunkerView.create($('bunker-popup'));
 const credits=window.S42Motion.createCredits($('cat-viewport'),$('cat-description'));
 const carousel=window.S42Motion.createCarousel($('bunker'),createBunkerCard);
-function createBunkerCard(card){
- const slide=document.createElement('article');slide.className='bunker-slide';
- const background=document.createElement('img');background.className='bunker-background';background.src='assets/bunker-background.png';background.alt='';
- const frame=document.createElement('img');frame.className='bunker-frame';frame.src='assets/bunker-frame.png';frame.alt='';
+function createBunkerCard(card,i){
+ const slide=document.createElement('article');slide.className='bunker-slide'+(card.closed?' closed':'');
  const content=document.createElement('div');content.className='bunker-card-content';
- const title=document.createElement('h2');title.textContent=card.closed?'Закрытая карта':card.title||'Карта бункера';
- const description=document.createElement('p');description.textContent=card.closed?'':card.description||'';
- content.append(title,description);slide.append(background,frame,content);return slide;
+ if(card.closed){
+  const icon=document.createElement('img');icon.src='assets/bunker-closed.svg';icon.width=32;icon.height=32;icon.alt='';
+  const description=document.createElement('p');description.textContent=card.revealLabel||'Откроется после '+(i+1)+' круга';
+  content.append(icon,description);
+ }else{
+  const background=document.createElement('img');background.className='bunker-background';background.src='assets/bunker-background.png';background.alt='';slide.append(background);
+  const title=document.createElement('h2');title.textContent=card.title||'Карта бункера';
+  const description=document.createElement('p');description.textContent=card.description||'';
+  content.append(title,description);
+ }
+ slide.append(content);return slide;
 }
+const wideLayout=window.matchMedia('(min-width:2560px)');
+function createSlotState(dead=false){
+ const state=document.createElement('div');state.className='slot-state';
+ const brand=document.createElement('img');brand.className='slot-brand';brand.src='assets/empty-brand.svg';brand.width=337.097;brand.height=61.2305;brand.alt='';
+ const label=document.createElement('div');label.className='slot-state-label';
+ const icon=document.createElement('img');icon.src=dead?'assets/eliminated-skull.svg':'assets/empty-crown.svg';icon.width=34;icon.height=34;icon.alt='';
+ const text=document.createElement('span');
+ if(dead){const firstLine=document.createElement('span');firstLine.className='slot-state-first-line';firstLine.textContent='Игрок покинул';text.append(firstLine,document.createElement('br'),document.createTextNode('убежище'));}else text.textContent='Место пустует';
+ label.append(icon,text);state.append(brand,label);return state;
+}
+function createEmptySlot(){const slot=document.createElement('article');slot.className='player empty';slot.setAttribute('aria-label','Свободное место');slot.append(createSlotState());return slot;}
+
 let options={grid:'4x3',left:0,top:0,right:0,bottom:0,map:{}};
 const CATEGORIES=['Профессия','Здоровье','Биология','Хобби','Багаж','Факты'];
 const CARD_ICONS={'Профессия':'profession','Здоровье':'health','Биология':'biology','Факты':'fact','Хобби':'hobby','Багаж':'baggage'};
@@ -84,13 +102,13 @@ function createPlayer(p,i){
  const mapped=options.map[key];select.value=String(mapped===undefined?(i<total?i+1:0):mapped);if(!select.value)select.value='0';
  select.hidden=!settingsOpen;select.onchange=()=>{options.map[key]=Number(select.value);save().catch(()=>{});};cam.append(select);
  const name=document.createElement('div');name.className='name';const small=document.createElement('small');small.textContent=String(p.number||i+1).replace('Игрок ','');const title=document.createElement('span');title.textContent=safeText(p.name);name.append(small,title);
- if(p.eliminated){const tag=document.createElement('span');tag.className='deadTag';tag.textContent='ИЗГНАН';name.append(tag);}
+ if(p.eliminated)article.append(createSlotState(true));
  const cards=document.createElement('div');cards.className='cards';
  const known=p.cards||{};
  const left=document.createElement('div');left.className='card-stack card-stack-left';
  const right=document.createElement('div');right.className='card-stack card-stack-right';
  for(const k of CATEGORIES){
-  const v=known[k]||(k==='Факты'?known['Факт']:null),card=document.createElement('div');card.className='card card-'+CARD_ICONS[k]+(v?'':' unrevealed');card.title=`${k}: ${v||'не раскрыто'}`;
+  const v=p.eliminated?null:known[k]||(k==='Факты'?known['Факт']:null),card=document.createElement('div');card.className='card card-'+CARD_ICONS[k]+(v?'':' unrevealed');card.title=`${k}: ${v||'не раскрыто'}`;
   const label=document.createElement('span');label.textContent=v?safeText(v):(k==='Факты'?'Факт':k);
   const icon=document.createElement('img');icon.src=`assets/${v?"":"unrevealed/"}${CARD_ICONS[k]}.svg`;icon.width=16;icon.height=16;icon.alt='';
   if(['Профессия','Здоровье','Биология'].includes(k)){card.append(icon,label);left.append(card);}else{card.append(label,icon);right.append(card);}
@@ -105,6 +123,15 @@ function render(){
  $('stage').textContent=game.final?'Финал':`${game.round?'Круг '+game.round:'Игра'}${game.stage?' · '+game.stage:''}`;
  $('clock').textContent=game.timer||'';
  $('catastrophe').textContent=game.catastrophe||'';credits.update(game.catastropheDescription||'');
+ const nuclear=game.catastrophe==='Ядерная война';
+ const image=$('cat-center-image');let source=game.catastropheImage||game.catastrophePopup?.image||'';
+ try{if(source&&new URL(source).protocol!=='https:')source='';}catch{source='';}
+ image.hidden=!source&&!nuclear;
+ const path=source||(nuclear?'assets/catastrophe-popup.png':'');
+ if(path&&image.getAttribute('src')!==path)image.src=path;
+ if(!path)image.removeAttribute('src');
+ const wideSource=$('cat-wide-source');
+ if(!source&&nuclear)wideSource.srcset='assets/center-catastrophe-wide.png';else wideSource.removeAttribute('srcset');
  renderPlayers(game.players||[]);
  $('duration').textContent=game.duration||'—';$('population').textContent=game.population||'—';
  $('area').textContent=game.area||'—';$('capacity').textContent=game.capacity||'—';
@@ -115,13 +142,15 @@ function render(){
  if(stream&&!raf)drawLoop();
 }
 function renderPlayers(players){
- const center=$('game-center');
- const slots=Array.from({length:10},(_,i)=>createPlayer(players[i]||{number:`Игрок ${i+1}`,name:'Игрок '+(i+1),cards:{}},i));
- slots.forEach((slot,i)=>slot.style.gridArea=[[1,1],[1,2],[1,3],[1,4],[2,1],[2,4],[3,1],[3,2],[3,3],[3,4]][i].join(' / '));
+ const center=$('game-center'),wide=wideLayout.matches;
+ const positions=wide?Array.from({length:12},(_,i)=>[Math.floor(i/4)+1,i%4+1]):[[1,1],[1,2],[1,3],[1,4],[2,1],[2,4],[3,1],[3,2],[3,3],[3,4]];
+ const slots=positions.map((position,i)=>{const slot=players[i]?createPlayer(players[i],i):createEmptySlot();slot.style.gridArea=position.join(' / ');return slot;});
  $('people').querySelectorAll('.player').forEach(p=>p.remove());
- if(center.parentElement!==$('people'))$('people').append(center);
- slots.forEach(slot=>$('people').insertBefore(slot,center));
+ const parent=wide?$('app'):$('people');if(center.parentElement!==parent)parent.append(center);
+ slots.forEach(slot=>$('people').append(slot));
 }
+wideLayout.addEventListener('change',()=>render());
+
 function drawLoop(){
  if(!stream||sourceVideo.readyState<2){raf=stream?requestAnimationFrame(drawLoop):0;return;}
  const vw=sourceVideo.videoWidth,vh=sourceVideo.videoHeight;

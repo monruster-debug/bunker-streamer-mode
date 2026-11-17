@@ -29,12 +29,14 @@
     const round = get('.status-item__number',active);
     const bunker = [...document.querySelectorAll('.bunker-card')].map(card => {
        const closed=card.classList.contains('bunker-card__close');
-       return {closed, title: closed ? '' : get('.bunker-card__front .bunker-card__title',card), description:closed?'':get('.bunker-card__back .bunker-card__title',card)};
+       return {closed, revealLabel:closed?get('h3',card):'', title: closed ? '' : get('.bunker-card__front .bunker-card__title',card), description:closed?'':get('.bunker-card__back .bunker-card__title',card)};
     });
+    const background=document.querySelector('.bunker-main');
+    const catastropheImage=background?getComputedStyle(background).backgroundImage.match(/url\(["']?(.*?)["']?\)/)?.[1]||'':'';
     const current = get('.game-header .current-status .base-button__text');
     const next = get('.game-header .next-status .base-button__text');
     const seconds = get('.game-header .game-timer') || get('.game-mobile-header .game-timer');
-    return {source:'shelter42.ru/online/game', updatedAt:Date.now(), players, catastrophe:get('.bunker-main__title h3')||catastrophePopup.title||'', catastropheDescription:get('.bunker-main__text')||catastrophePopup.description||'', catastrophePopup, bunkerPopup, bunker, round, stage, current, next, timer:seconds, final:!!document.querySelector('.final')};
+    return {source:'shelter42.ru/online/game', updatedAt:Date.now(), players, catastrophe:get('.bunker-main__title h3')||catastrophePopup.title||'', catastropheDescription:get('.bunker-main__text')||catastrophePopup.description||'', catastrophePopup, catastropheImage, bunkerPopup, bunker, round, stage, current, next, timer:seconds, final:!!document.querySelector('.final')};
   }
   function publish() {
     if(!document.querySelector('.bunker-info, .open-cards-table, .disaster-card-modal, .bunker-card-modal')&&!previous) return;

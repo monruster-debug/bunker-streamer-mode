@@ -4,7 +4,7 @@ const {readFileSync}=require('node:fs');
 const {runInNewContext}=require('node:vm');
 function setup(){
  const intervals=new Map(),timeouts=new Map(),frames=new Map();let id=0;
- const scope={window:{},setInterval:(fn,ms)=>{intervals.set(++id,{fn,ms});return id;},clearInterval:key=>intervals.delete(key),setTimeout:fn=>{timeouts.set(++id,fn);return id;},clearTimeout:key=>timeouts.delete(key),requestAnimationFrame:fn=>{frames.set(++id,fn);return id;},cancelAnimationFrame:key=>frames.delete(key),ResizeObserver:class{observe(){}disconnect(){}}};
+ const scope={window:{},getComputedStyle:track=>({columnGap:track.gap||"4px"}),setInterval:(fn,ms)=>{intervals.set(++id,{fn,ms});return id;},clearInterval:key=>intervals.delete(key),setTimeout:fn=>{timeouts.set(++id,fn);return id;},clearTimeout:key=>timeouts.delete(key),requestAnimationFrame:fn=>{frames.set(++id,fn);return id;},cancelAnimationFrame:key=>frames.delete(key),ResizeObserver:class{observe(){}disconnect(){}}};
  runInNewContext(readFileSync('center-motion.js','utf8'),scope);
  return {api:scope.window.S42Motion,intervals,timeouts,flush(){for(const fn of frames.values())fn();frames.clear();}};
 }
@@ -30,4 +30,11 @@ test('credits hold for 2 minutes then reach the end and return without resets on
  assert.equal(started,1);assert.ok(Math.abs(frames[1].offset*timing.duration-120000)<.001);assert.equal(frames[2].transform,'translateY(-200px)');assert.equal(frames.at(-1).transform,'translateY(0px)');assert.equal(timing.iterations,Infinity);
  c.update('Длинное описание');s.flush();assert.equal(started,1);
  text.scrollHeight=100;c.update('Короткое описание');s.flush();assert.equal(cancelled,1);assert.equal(started,1);c.destroy();
+});
+
+test('carousel uses the sidebar gap instead of the center gap',()=>{
+ const s=setup(),track={style:{},gap:'10px',firstElementChild:{getBoundingClientRect:()=>({width:228})},replaceChildren(){}};
+ const c=s.api.createCarousel(track,()=>({setAttribute(){}}));
+ c.update([{title:'Один'},{title:'Два'}]);[...s.intervals.values()][0].fn();
+ assert.equal(track.style.transform,'translateX(-238px)');c.destroy();
 });
