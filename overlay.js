@@ -38,7 +38,12 @@ function createSlotState(dead=false){
  if(dead){const firstLine=document.createElement('span');firstLine.className='slot-state-first-line';firstLine.textContent='Игрок покинул';text.append(firstLine,document.createElement('br'),document.createTextNode('убежище'));}else text.textContent='Место пустует';
  label.append(icon,text);state.append(brand,label);return state;
 }
-function createEmptySlot(){const slot=document.createElement('article');slot.className='player empty';slot.setAttribute('aria-label','Свободное место');slot.append(createSlotState());return slot;}
+function createCameraSettings(label){
+ const button=document.createElement('button');button.type='button';button.className='player-camera-settings';button.title='Настройка камер';button.setAttribute('aria-label','Настройка камеры: '+label);
+ const icon=document.createElement('img');icon.src='assets/camera-settings.svg';icon.width=20;icon.height=20;icon.alt='';button.append(icon);
+ button.addEventListener('click',()=>toggleSettings(true));return button;
+}
+function createEmptySlot(){const slot=document.createElement('article');slot.className='player empty';slot.setAttribute('aria-label','Свободное место');slot.append(createSlotState(),createCameraSettings('свободное место'));return slot;}
 
 let options={grid:'4x3',left:0,top:0,right:0,bottom:0,map:{}};
 const CATEGORIES=['Профессия','Здоровье','Биология','Хобби','Багаж','Факты'];
@@ -121,7 +126,7 @@ function createPlayer(p,i){
   if(['Профессия','Здоровье','Биология'].includes(k)){card.append(icon,label);left.append(card);}else{card.append(label,icon);right.append(card);}
  }
  cards.append(left,right);
- article.append(cam,name,cards);
+ article.append(cam,name,cards,createCameraSettings(p.name));
  const voters=[...new Set((p.voters||[]).map(String))].filter(n=>/^\d+$/.test(n)).sort((a,b)=>Number(a)-Number(b));
  if(voters.length){
   const votes=document.createElement('div');votes.className='player-votes';votes.setAttribute('aria-label','За изгнание проголосовали игроки: '+voters.join(', '));
