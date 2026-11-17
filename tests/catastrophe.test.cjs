@@ -9,7 +9,7 @@ test('reads only a visible disaster modal and follows closing, reopening and hid
  parent.hidden=true;assert.equal(read().visible,false);
 });
 test('viewer popup stays open through timer updates and closes only on source visibility',()=>{
- const fields=new Map();const root={hidden:true,querySelector:s=>{if(!fields.has(s))fields.set(s,{textContent:'',hidden:true,getAttribute(){return this.src},removeAttribute(){delete this.src}});return fields.get(s);}};
+ const fields=new Map();const root={hidden:true,querySelector:s=>{if(!fields.has(s))fields.set(s,{textContent:'',hidden:true,classList:{toggle(){}},getAttribute(){return this.src},removeAttribute(){delete this.src}});return fields.get(s);}};
  const scope={window:{},URL};runInNewContext(fs.readFileSync('catastrophe-view.js','utf8'),scope);const view=scope.window.S42CatastropheView.create(root);
  const game={catastrophePopup:{visible:true,title:'Ядерная война',description:'<b>Текст</b>',image:'https://shelter42.ru/image.png'}};
  view.update(game);assert.equal(root.hidden,false);assert.equal(fields.get('[data-popup-description]').textContent,'<b>Текст</b>');

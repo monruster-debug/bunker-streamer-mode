@@ -3,6 +3,7 @@ const $=id=>document.getElementById(id);
 let game=null, stream=null, sourceKind=null, raf=0, lastSignature='', settingsOpen=false;
 const sourceVideo=$('source-video');
 const catastropheView=window.S42CatastropheView.create($('catastrophe-popup'));
+const bunkerView=window.S42BunkerView.create($('bunker-popup'));
 const credits=window.S42Motion.createCredits($('cat-viewport'),$('cat-description'));
 const carousel=window.S42Motion.createCarousel($('bunker'),createBunkerCard);
 function createBunkerCard(card){
@@ -99,6 +100,7 @@ function createPlayer(p,i){
 }
 function render(){
  catastropheView.update(game);
+ bunkerView.update(game);
  if(!game){$('status').textContent='Откройте игру и проверьте подключение в меню расширения';renderPlayers([]);return;}
  $('stage').textContent=game.final?'Финал':`${game.round?'Круг '+game.round:'Игра'}${game.stage?' · '+game.stage:''}`;
  $('clock').textContent=game.timer||'';
@@ -138,7 +140,7 @@ function drawLoop(){
  raf=requestAnimationFrame(drawLoop);
 }
 function toggleSettings(next){settingsOpen=next;$('config').hidden=!next;$('settings-toggle').textContent=next?'× Скрыть настройки':'⚙ Настройка камер';render();}
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('catastrophe-popup').hidden)toggleSettings(!settingsOpen);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('catastrophe-popup').hidden&&$('bunker-popup').hidden)toggleSettings(!settingsOpen);});
 function setGame(s){if(!s)return;game=s;const sign=JSON.stringify(s);if(sign!==lastSignature){lastSignature=sign;render();}}
 $('settings-toggle').addEventListener('click',()=>toggleSettings(!settingsOpen));
 $('hide-settings').addEventListener('click',()=>toggleSettings(false));

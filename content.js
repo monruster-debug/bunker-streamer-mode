@@ -6,6 +6,7 @@
   let previous = '', timer = null;
   function snapshot() {
     const catastrophePopup=window.S42GameDOM.readCatastrophe();
+    const bunkerPopup=window.S42GameDOM.readBunker();
     const table = document.querySelector('.open-cards-table.hide-in-mobile') || document.querySelector('.open-cards-table');
     const players = table ? [...table.querySelectorAll('.open-cards-table-tr')].map((row,i)=> {
       const id = row.querySelector('.open-cards-table__first-cell');
@@ -33,10 +34,10 @@
     const current = get('.game-header .current-status .base-button__text');
     const next = get('.game-header .next-status .base-button__text');
     const seconds = get('.game-header .game-timer') || get('.game-mobile-header .game-timer');
-    return {source:'shelter42.ru/online/game', updatedAt:Date.now(), players, catastrophe:get('.bunker-main__title h3')||catastrophePopup.title||'', catastropheDescription:get('.bunker-main__text')||catastrophePopup.description||'', catastrophePopup, bunker, round, stage, current, next, timer:seconds, final:!!document.querySelector('.final')};
+    return {source:'shelter42.ru/online/game', updatedAt:Date.now(), players, catastrophe:get('.bunker-main__title h3')||catastrophePopup.title||'', catastropheDescription:get('.bunker-main__text')||catastrophePopup.description||'', catastrophePopup, bunkerPopup, bunker, round, stage, current, next, timer:seconds, final:!!document.querySelector('.final')};
   }
   function publish() {
-    if(!document.querySelector('.bunker-info, .open-cards-table, .disaster-card-modal')&&!previous) return;
+    if(!document.querySelector('.bunker-info, .open-cards-table, .disaster-card-modal, .bunker-card-modal')&&!previous) return;
     const result = snapshot();
     const sign = JSON.stringify({...result,updatedAt:0});
     if(sign === previous) return;
