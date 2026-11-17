@@ -38,10 +38,10 @@ function createSlotState(dead=false, cameraOff=false){
  if(dead){const firstLine=document.createElement('span');firstLine.className='slot-state-first-line';firstLine.textContent='Игрок покинул';text.append(firstLine,document.createElement('br'),document.createTextNode('убежище'));}else text.textContent=cameraOff?'Камера отключена':'Место пустует';
  label.append(icon,text);state.append(brand,label);return state;
 }
-function createCameraSettings(label){
+function createCameraSettings(label,key){
  const button=document.createElement('button');button.type='button';button.className='player-camera-settings';button.title='Настройка камер';button.setAttribute('aria-label','Настройка камеры: '+label);
  const icon=document.createElement('img');icon.src='assets/camera-settings.svg';icon.width=20;icon.height=20;icon.alt='';button.append(icon);
- button.addEventListener('click',()=>toggleSettings(true));return button;
+ button.addEventListener('click',()=>{toggleSettings(true);if(key){const select=[...$('camera-assignments-list').querySelectorAll('select')].find(el=>el.dataset.playerKey===key);select?.focus({preventScroll:true});select?.scrollIntoView({block:'nearest'});}});return button;
 }
 function createEmptySlot(){const slot=document.createElement('article');slot.className='player empty';slot.setAttribute('aria-label','Свободное место');slot.append(createSlotState(),createCameraSettings('свободное место'));return slot;}
 
@@ -107,14 +107,11 @@ function createPlayer(p,i){
  const cam=document.createElement('div');cam.className='cam';
  const canvas=document.createElement('canvas');canvas.width=480;canvas.height=300;canvas.hidden=!stream;cam.append(canvas);
  const idx=document.createElement('div');idx.className='cam-index';idx.textContent=p.number||`Игрок ${i+1}`;cam.append(idx);
- const select=document.createElement('select');select.className='cam-map';select.title='Номер видеоячейки для игрока';select.setAttribute('aria-label','Видеоячейка для '+p.name);
- const unassigned=document.createElement('option');unassigned.value='0';unassigned.textContent='Без камеры';select.append(unassigned);
- const {total}=gridDims();for(let n=1;n<=total;n++){const opt=document.createElement('option');opt.value=String(n);opt.textContent=`Камера ${n}`;select.append(opt);}
- const mapped=options.map[key];select.value=String(mapped===undefined?(i<total?i+1:0):mapped);if(!select.value)select.value='0';
- select.hidden=!settingsOpen;select.onchange=()=>{options.map[key]=Number(select.value);save().catch(()=>{});render();};cam.append(select);
+ const {total}=gridDims();
+ const mapped=options.map[key]??(i<total?i+1:0);
  const name=document.createElement('div');name.className='name';const small=document.createElement('small');small.textContent=String(p.number||i+1).replace('Игрок ','');const title=document.createElement('span');title.textContent=safeText(p.name);name.append(small,title);
  if(p.eliminated)article.append(createSlotState(true));
- else if(!stream||Number(select.value)===0){canvas.hidden=true;article.append(createSlotState(false,true));}
+ else if(!stream||Number(mapped)<1||Number(mapped)>total){canvas.hidden=true;article.append(createSlotState(false,true));}
  const cards=document.createElement('div');cards.className='cards';
  const known=p.cards||{};
  const left=document.createElement('div');left.className='card-stack card-stack-left';
@@ -126,7 +123,7 @@ function createPlayer(p,i){
   if(['Профессия','Здоровье','Биология'].includes(k)){card.append(icon,label);left.append(card);}else{card.append(label,icon);right.append(card);}
  }
  cards.append(left,right);
- article.append(cam,name,cards,createCameraSettings(p.name));
+ article.append(cam,name,cards,createCameraSettings(p.name,key));
  const voters=[...new Set((p.voters||[]).map(String))].filter(n=>/^\d+$/.test(n)).sort((a,b)=>Number(a)-Number(b));
  if(voters.length){
   const votes=document.createElement('div');votes.className='player-votes';votes.setAttribute('aria-label','За изгнание проголосовали игроки: '+voters.join(', '));
@@ -148,7 +145,29 @@ function updateTurnClock(state){
  $('clock-additional').textContent=state.additionalTime||'';
  $('clock-additional').hidden=!discussion||!state.additionalTime;
 }
+let previousAssignmentsRender='';
+function renderCameraAssignments(){
+ if(!settingsOpen)return;
+ const players=(game?.players||[]).slice(0,wideLayout.matches?12:10);
+ const signature=JSON.stringify({players:players.map((p,i)=>playerKey(p,i)),grid:options.grid,map:options.map});
+ if(signature===previousAssignmentsRender)return;
+ previousAssignmentsRender=signature;
+ const list=$('camera-assignments-list');list.replaceChildren();
+ if(!players.length){const empty=document.createElement('p');empty.textContent='Игроки появятся после подключения к игре.';list.append(empty);return;}
+ const {cols,total}=gridDims();
+ players.forEach((p,i)=>{
+  const key=playerKey(p,i),label=document.createElement('label');label.className='camera-assignment';
+  const name=document.createElement('span');name.textContent=String(p.number||i+1).replace('Игрок ','')+'. '+p.name;
+  const select=document.createElement('select');select.dataset.playerKey=key;select.setAttribute('aria-label','Камера для '+name.textContent);
+  const none=document.createElement('option');none.value='0';none.textContent='Без камеры';select.append(none);
+  for(let n=1;n<=total;n++){const opt=document.createElement('option');opt.value=String(n);opt.textContent='Камера '+n+' · ряд '+(Math.floor((n-1)/cols)+1)+', место '+((n-1)%cols+1);select.append(opt);}
+  const mapped=Number(options.map[key]??(i<total?i+1:0));select.value=String(mapped>=1&&mapped<=total?mapped:0);
+  select.addEventListener('change',()=>{options.map[key]=Number(select.value);save().catch(e=>updateSourceStatus('Не сохранено: '+e.message));render();});
+  label.append(name,select);list.append(label);
+ });
+}
 function render(){
+ renderCameraAssignments();
  catastropheView.update(game);
  bunkerView.update(game);
  if(!game){$('status').textContent='Откройте игру и проверьте подключение в меню расширения';renderPlayers([]);return;}
