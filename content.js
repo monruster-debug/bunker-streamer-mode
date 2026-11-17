@@ -1,0 +1,60 @@
+(() => {
+  if (window.__s42StreamerInstalled) return;
+  window.__s42StreamerInstalled = true;
+  const clean = (e) => e?.textContent?.replace(/\s+/g,' ').trim() || '';
+  const get = (sel, root=document) => clean(root.querySelector(sel));
+  let previous = '', timer = null;
+  function snapshot() {
+    const table = document.querySelector('.open-cards-table.hide-in-mobile') || document.querySelector('.open-cards-table');
+    const players = table ? [...table.querySelectorAll('.open-cards-table-tr')].map((row,i)=> {
+      const id = row.querySelector('.open-cards-table__first-cell');
+      const number = get('p',id) || `Игрок ${i+1}`;
+      const name = get('span',id) || `Игрок ${i+1}`;
+      const cards = {};
+      row.querySelectorAll('.open-cards-table__base-cell').forEach(cell => {
+        const spans = cell.querySelectorAll(':scope > span');
+        if(spans.length<2) return;
+        const category = clean(spans[0]).replace(/:$/,'');
+        const value = clean(spans[1]);
+        // The actual page marks unopened cards as a dash.
+        // Never read the player's private "Мои карточки" dialog.
+        if(category && value && value !== '-' && value !== '—' && !cell.classList.contains('hidden')) cards[category]=value;
+      });
+      return {number,name,cards,eliminated:row.classList.contains('open-cards-table-tr-dropped')};
+    }) : [];
+    const active = document.querySelector('.game-status-header.hide-in-mobile .status-item_act');
+    const stage = active?.querySelector('.status-item__current span')?.textContent?.trim() || '';
+    const round = get('.status-item__number',active);
+    const bunker = [...document.querySelectorAll('.bunker-card')].map(card => {
+       const closed=card.classList.contains('bunker-card__close');
+       return {closed, title: closed ? '' : get('.bunker-card__front .bunker-card__title',card)};
+    });
+    const current = get('.game-header .current-status .base-button__text');
+    const next = get('.game-header .next-status .base-button__text');
+    const seconds = get('.game-header .game-timer') || get('.game-mobile-header .game-timer');
+    return {source:'shelter42.ru/online/game', updatedAt:Date.now(), players, catastrophe:get('.bunker-main__title h3'), catastropheDescription:get('.bunker-main__text'), bunker, round, stage, current, next, timer:seconds, final:!!document.querySelector('.final')};
+  }
+  function publish() {
+    if(!document.querySelector('.bunker-info') && !document.querySelector('.open-cards-table')) return;
+    const result = snapshot();
+    const sign = JSON.stringify({...result,updatedAt:0});
+    if(sign === previous) return;
+    previous = sign;
+    chrome.storage.local.set({gameState:result}).catch(()=>{});
+  }
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message?.type !== 'S42_SCAN') return;
+    try {
+      previous = '';
+      publish();
+      const found = !!document.querySelector('.open-cards-table, .bunker-info');
+      sendResponse({ok:found, players: snapshot().players.length, url:location.href});
+    } catch(e) {sendResponse({ok:false,error:String(e)});}
+  });
+  function schedule() { clearTimeout(timer); timer = setTimeout(publish,180); }
+  const observer = new MutationObserver(schedule);
+  observer.observe(document.documentElement,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class']});
+  publish();
+  setInterval(publish,3000);
+  window.addEventListener('pagehide',()=>{chrome.storage.local.set({gameDisconnectedAt:Date.now()}).catch(()=>{});});
+})();

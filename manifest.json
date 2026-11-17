@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Убежище 42 Stream",
+  "version": "0.4.0",
+  "description": "Локальный оверлей: открытые карты из HTML и видеозахват окна Discord или OBS Virtual Camera с разрешения пользователя.",
+  "permissions": ["storage", "tabs"],
+  "host_permissions": ["https://shelter42.ru/*"],
+  "content_scripts": [{"matches":["https://shelter42.ru/online/game*"],"js":["content.js"],"run_at":"document_idle"}],
+  "action": {"default_title":"Убежище 42 Stream","default_popup":"popup.html"}
+}
