@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Убежище 42 Stream",
-  "version": "0.9.6",
+  "version": "0.9.7",
   "description": "Локальный оверлей: открытые карты из HTML и видеозахват окна Discord или OBS Virtual Camera с разрешения пользователя.",
   "permissions": [
     "storage",
