@@ -92,7 +92,7 @@ function createPlayer(p,i){
  for(const k of CATEGORIES){
   const v=known[k]||(k==='Факты'?known['Факт']:null),card=document.createElement('div');card.className='card card-'+CARD_ICONS[k]+(v?'':' unrevealed');card.title=`${k}: ${v||'не раскрыто'}`;
   const label=document.createElement('span');label.textContent=v?safeText(v):(k==='Факты'?'Факт':k);
-  const icon=document.createElement('img');icon.src=`assets/${CARD_ICONS[k]}.svg`;icon.width=16;icon.height=16;icon.alt='';
+  const icon=document.createElement('img');icon.src=`assets/${v?"":"unrevealed/"}${CARD_ICONS[k]}.svg`;icon.width=16;icon.height=16;icon.alt='';
   if(['Профессия','Здоровье','Биология'].includes(k)){card.append(icon,label);left.append(card);}else{card.append(label,icon);right.append(card);}
  }
  cards.append(left,right);
