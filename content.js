@@ -4,11 +4,12 @@
   const clean = (e) => e?.textContent?.replace(/\s+/g,' ').trim() || '';
   const get = (sel, root=document) => clean(root?.querySelector(sel));
   let previous = '', timer = null;
+  let roster=window.S42GameDOM.createRoster();
   function snapshot() {
     const catastrophePopup=window.S42GameDOM.readCatastrophe();
     const bunkerPopup=window.S42GameDOM.readBunker();
     const table = document.querySelector('.open-cards-table.hide-in-mobile') || document.querySelector('.open-cards-table');
-    const players = table ? [...table.querySelectorAll('.open-cards-table-tr')].map((row,i)=> {
+    const players = roster.update(table ? [...table.querySelectorAll('.open-cards-table-tr')].map((row,i)=> {
       const id = row.querySelector('.open-cards-table__first-cell');
       const number = get('p',id) || `Игрок ${i+1}`;
       const name = get('span',id) || `Игрок ${i+1}`;
@@ -23,7 +24,7 @@
         if(category && value && value !== '-' && value !== '—' && !cell.classList.contains('hidden')) cards[category]=value;
       });
       return {number,name,cards,eliminated:row.classList.contains('open-cards-table-tr-dropped')};
-    }) : [];
+    }) : []);
     const votes=window.S42GameDOM.readVotes(players);
     players.forEach((player,i)=>{player.voters=votes[i];});
     const active = document.querySelector('.game-status-header.hide-in-mobile .status-item_act');
@@ -57,7 +58,10 @@
   function schedule() { clearTimeout(timer); timer = setTimeout(publish,180); }
   const observer = new MutationObserver(schedule);
   observer.observe(document.documentElement,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','style','hidden','aria-hidden','src']});
-  publish();
+  chrome.storage.local.get(['gameState'],saved=>{
+    roster=window.S42GameDOM.createRoster(saved.gameState?.players||[]);
+    previous='';publish();
+  });
   setInterval(publish,3000);
   window.addEventListener('pagehide',()=>{chrome.storage.local.set({gameDisconnectedAt:Date.now()}).catch(()=>{});});
 })();

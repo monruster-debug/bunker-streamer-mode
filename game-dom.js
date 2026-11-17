@@ -1,6 +1,19 @@
 'use strict';
 // Read public rendered DOM only. Never inspect framework state or private cards.
 window.S42GameDOM={
+ createRoster(seed=[]){
+  let roster=seed;
+  return {update(players){
+   if(!players.length)return [];
+   const names=new Set(players.map(p=>p.name));
+   if(!roster.some(p=>names.has(p.name)))roster=[];
+   const incoming=new Map(players.map(p=>[p.name,p]));
+   const existing=new Set(roster.map(p=>p.name));
+   roster=roster.map(p=>incoming.has(p.name)?{...incoming.get(p.name),number:p.number}:{...p,eliminated:true,voters:[]});
+   for(const p of players)if(!existing.has(p.name))roster.push({...p,number:'Игрок '+(roster.length+1)});
+   return roster;
+  }};
+ },
  readBunkerCards(doc=document){
   const clean=el=>el?.textContent?.replace(/\s+/g,' ').trim()||'';
   return [...doc.querySelectorAll('.bunker-card')].map(card=>{
