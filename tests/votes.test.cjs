@@ -16,3 +16,8 @@ test('hidden, unknown and ambiguous player names never produce guessed votes',()
  s.set([s.card('Аня',['Дубль','Неизвестен']),s.card('Дубль',['Аня']),s.card('Аня',['Аня'],false)]);
  assert.deepEqual(s.read(players),[[],[],[]]);
 });
+test('live game table labels and comma-separated voter names produce numeric badges',()=>{
+ const s=setup(),players=[{name:'Таракан',number:'Игрок 1'},{name:'Репка',number:'Игрок 2'},{name:'FRAITAG',number:'Игрок 3'},{name:'Кот',number:'Игрок 4'}];
+ s.set([s.card('Таракан',['FRAITAG']),s.card('Репка',['Кот']),s.card('FRAITAG',['Таракан,','Репка']),s.card('Кот',[])]);
+ assert.deepEqual(s.read(players),[['3'],['4'],['1','2'],[]]);
+});

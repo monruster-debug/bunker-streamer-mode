@@ -20,8 +20,10 @@ window.S42GameDOM={
    const target=find(clean(card.querySelector('.players-info-card__username')));
    if(!target)continue;
    for(const item of card.querySelectorAll('.votes-players li')){
-    const voter=find(clean(item));
-    if(voter)result.get(target).add(String(voter.number));
+    const name=clean(item);
+    const voter=find(name)||find(name.replace(/,\s*$/,''));
+    const number=String(voter?.number||'').match(/^(?:Игрок\s+)?(\d+)$/)?.[1];
+    if(number)result.get(target).add(number);
    }
   }
   return players.map(p=>[...result.get(p)].sort((a,b)=>Number(a)-Number(b)));
