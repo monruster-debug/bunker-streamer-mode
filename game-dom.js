@@ -1,6 +1,22 @@
 'use strict';
 // Read public rendered DOM only. Never inspect framework state or private cards.
 window.S42GameDOM={
+ readVotes(players,doc=document){
+  const clean=el=>el?.textContent?.replace(/\s+/g,' ').trim()||'';
+  // Names are the only public identity in voting cards. Ambiguous names are skipped.
+  const find=name=>{const matches=players.filter(p=>p.name===name);return matches.length===1?matches[0]:null;};
+  const result=new Map(players.map(p=>[p, new Set()]));
+  for(const card of doc.querySelectorAll('.players-info-desktop .players-info-card')){
+   if(!card.getClientRects().length)continue;
+   const target=find(clean(card.querySelector('.players-info-card__username')));
+   if(!target)continue;
+   for(const item of card.querySelectorAll('.votes-players li')){
+    const voter=find(clean(item));
+    if(voter)result.get(target).add(String(voter.number));
+   }
+  }
+  return players.map(p=>[...result.get(p)].sort((a,b)=>Number(a)-Number(b)));
+ },
  visibleModal(doc,selector){
   return [...doc.querySelectorAll(selector)].find(modal=>{
    if(!modal.getClientRects().length)return false;

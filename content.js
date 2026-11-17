@@ -24,6 +24,8 @@
       });
       return {number,name,cards,eliminated:row.classList.contains('open-cards-table-tr-dropped')};
     }) : [];
+    const votes=window.S42GameDOM.readVotes(players);
+    players.forEach((player,i)=>{player.voters=votes[i];});
     const active = document.querySelector('.game-status-header.hide-in-mobile .status-item_act');
     const stage = active?.querySelector('.status-item__current span')?.textContent?.trim() || '';
     const round = get('.status-item__number',active);

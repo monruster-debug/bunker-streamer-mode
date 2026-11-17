@@ -121,7 +121,14 @@ function createPlayer(p,i){
   if(['Профессия','Здоровье','Биология'].includes(k)){card.append(icon,label);left.append(card);}else{card.append(label,icon);right.append(card);}
  }
  cards.append(left,right);
- article.append(cam,name,cards);return article;
+ article.append(cam,name,cards);
+ const voters=[...new Set((p.voters||[]).map(String))].filter(n=>/^\d+$/.test(n)).sort((a,b)=>Number(a)-Number(b));
+ if(voters.length){
+  const votes=document.createElement('div');votes.className='player-votes';votes.setAttribute('aria-label','За изгнание проголосовали игроки: '+voters.join(', '));
+  for(const number of voters){const badge=document.createElement('span');badge.className='vote-badge';badge.textContent=number;votes.append(badge);}
+  article.append(votes);
+ }
+ return article;
 }
 function render(){
  catastropheView.update(game);
