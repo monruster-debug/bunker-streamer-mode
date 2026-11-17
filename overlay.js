@@ -103,7 +103,7 @@ async function captureCamera(){
  }catch(e){updateSourceStatus('Камера не подключена: '+e.message+' · проверьте разрешения браузера и запуск OBS Virtual Camera');}
 }
 function createPlayer(p,i){
- const key=playerKey(p,i), article=document.createElement('article');article.className='player'+(p.eliminated?' dead':'')+(game?.current===p.name?' active':'');article.dataset.key=key;
+ const key=playerKey(p,i), article=document.createElement('article');article.className='player'+(p.eliminated?' dead':'')+(game?.current===p.name&&!p.eliminated?' active':'');article.dataset.key=key;
  const cam=document.createElement('div');cam.className='cam';
  const canvas=document.createElement('canvas');canvas.width=480;canvas.height=300;canvas.hidden=!stream;cam.append(canvas);
  const idx=document.createElement('div');idx.className='cam-index';idx.textContent=p.number||`Игрок ${i+1}`;cam.append(idx);
@@ -173,6 +173,25 @@ function render(){
  $('status').textContent=`Данные: ${new Date(game.updatedAt).toLocaleTimeString('ru-RU')} · Видео: ${stream?'подключено':'не подключено'}`;
  if(stream&&!raf)drawLoop();
 }
+function animateElimination(previous,next){
+ if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ const transition=document.createElement('div');transition.className='elimination-transition';transition.setAttribute('aria-hidden','true');
+ const oldCanvas=previous.querySelector('canvas');
+ let outgoing;
+ if(oldCanvas&&!oldCanvas.hidden){
+  outgoing=document.createElement('canvas');outgoing.width=oldCanvas.width;outgoing.height=oldCanvas.height;
+  outgoing.getContext('2d').drawImage(oldCanvas,0,0);
+ }else outgoing=previous.querySelector('.slot-state')?.cloneNode(true)||document.createElement('div');
+ outgoing.classList.add('elimination-outgoing');
+ const incoming=next.querySelector('.slot-state').cloneNode(true);incoming.classList.add('elimination-incoming');
+ transition.append(outgoing,incoming);next.append(transition);
+ const fade=outgoing.animate([{opacity:1,filter:'grayscale(0) blur(0px)',transform:'scale(1)'},{opacity:.65,filter:'grayscale(1) blur(2px)',transform:'scale(1.025)',offset:.45},{opacity:0,filter:'grayscale(1) blur(8px)',transform:'scale(1.06)'}],{duration:1000,easing:'ease-in',fill:'both'});
+ const reveal=incoming.animate([{opacity:0,transform:'translateY(12px) scale(.94)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:750,delay:550,easing:'cubic-bezier(.16,1,.3,1)',fill:'both'});
+ Promise.allSettled([fade.finished,reveal.finished]).then(()=>{
+  transition.remove();
+  if(next.isConnected){previousPlayersRender='';render();}
+ });
+}
 let previousPlayersRender='';
 function renderPlayers(players){
  const signature=JSON.stringify({players,current:game?.current,wide:wideLayout.matches,settingsOpen,video:!!stream,options});
@@ -180,8 +199,16 @@ function renderPlayers(players){
  previousPlayersRender=signature;
  const center=$('game-center'),wide=wideLayout.matches;
  const positions=wide?Array.from({length:12},(_,i)=>[Math.floor(i/4)+1,i%4+1]):[[1,1],[1,2],[1,3],[1,4],[2,1],[2,4],[3,1],[3,2],[3,3],[3,4]];
- const slots=positions.map((position,i)=>{const slot=players[i]?createPlayer(players[i],i):createEmptySlot();slot.style.gridArea=position.join(' / ');return slot;});
- $('people').querySelectorAll('.player').forEach(p=>p.remove());
+ const existing=new Map([...$('people').querySelectorAll('.player')].map(slot=>[slot.dataset.key,slot]));
+ const slots=positions.map((position,i)=>{
+  const player=players[i],previous=player&&existing.get(playerKey(player,i));
+  // Keep a running transition mounted through timer, vote and camera-setting updates.
+  const continuing=player?.eliminated&&previous?.querySelector('.elimination-transition');
+  const slot=continuing?previous:player?createPlayer(player,i):createEmptySlot();
+  if(player?.eliminated&&previous&&!previous.classList.contains('dead'))animateElimination(previous,slot);
+  slot.style.gridArea=position.join(' / ');return slot;
+ });
+ $('people').querySelectorAll('.player').forEach(p=>{if(!slots.includes(p))p.remove();});
  const parent=wide?$('app'):$('people');if(center.parentElement!==parent)parent.append(center);
  slots.forEach(slot=>$('people').append(slot));
 }
