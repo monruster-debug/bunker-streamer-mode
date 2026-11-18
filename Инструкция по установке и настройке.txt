@@ -3,7 +3,7 @@
 Для версии 0.12.0. Обновлено: 18 ноября 2026 года.
 
 Проект: https://github.com/monruster-debug/bunker-streamer-mode
-Игра: https://shelter42.ru/online/game
+Игра: https://shelter42.ru
 
 1. ЧТО ДЕЛАЕТ РАСШИРЕНИЕ
 
